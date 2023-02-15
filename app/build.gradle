@@ -37,20 +37,15 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.6.0'
-    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
-    // Облегченная библиотека, содержит только карту, слой пробок,
-    // LocationManager, UserLocationLayer и возможность скачивать офлайн-карты (только в платной версии).
     implementation 'com.yandex.android:maps.mobile:4.2.2-lite'
-
-    // Полная библиотека в дополнение к lite версии предоставляет автомобильную маршрутизацию,
-    // веломаршрутизацию, пешеходную маршрутизацию и маршрутизацию на общественном транспорте,
-    // поиск, suggest, геокодирование и отображение панорам.
-//     implementation 'com.yandex.android:maps.mobile:4.2.2-full'
+    implementation "io.ktor:ktor-client-core:2.2.3"
+    implementation "io.ktor:ktor-client-android:2.2.3"
 }

@@ -3,6 +3,7 @@ package ru.titovtima.familymap
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -14,11 +15,19 @@ import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.TextStyle
 import com.yandex.mapkit.mapview.MapView
+import io.ktor.client.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import ru.titovtima.familymap.databinding.ActivityMainBinding
+import java.util.Date
+import kotlin.math.floor
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mapView: MapView
     private lateinit var locationClient: FusedLocationProviderClient
+    private val client = HttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         MapKitFactory.setApiKey("API-key was here")
@@ -33,7 +42,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         locationClient = LocationServices.getFusedLocationProviderClient(this)
-        getLocation()
     }
 
     fun getLocation() {
@@ -77,7 +85,31 @@ class MainActivity : AppCompatActivity() {
                     val placemark = mapView.map.mapObjects.addPlacemark(point)
                     placemark.setText("Ура, я тут",
                         TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false))
+                    runBlocking {
+                        postLocationToServer(point)
+                    }
                 }
+        }
+    }
+
+    suspend fun postLocationToServer(point: Point) {
+        val latitude = floor(point.latitude * 1000000).toInt()
+        val longitude = floor(point.longitude * 1000000).toInt()
+        val date = Date().time
+        val stringToPost = "{\"latitude\":$latitude,\"longitude\":$longitude,\"date\":$date}"
+        val response = client.post("https://familymap.titovtima.ru/location") {
+            headers {
+                append("Authorization", "Basic dGVzdC50aXRvdnRpbWE6dGl0b3Z0aW1h")
+                append("Content-Type", "application/json")
+            }
+            setBody(stringToPost)
+        }
+        if (response.status.value in 200..299) {
+            Toast.makeText(this, "Location posted", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(this,
+                "Error posting location\n${response.status.value} ${response.status.description}",
+                Toast.LENGTH_LONG).show()
         }
     }
 
@@ -85,6 +117,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         MapKitFactory.getInstance().onStart()
         mapView.onStart()
+        getLocation()
     }
 
     override fun onStop() {
