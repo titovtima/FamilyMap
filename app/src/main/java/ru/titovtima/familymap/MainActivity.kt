@@ -9,16 +9,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.TextStyle
 import com.yandex.mapkit.mapview.MapView
 import io.ktor.client.*
 import io.ktor.client.request.*
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import ru.titovtima.familymap.databinding.ActivityMainBinding
 import java.util.Date
@@ -28,6 +28,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mapView: MapView
     private lateinit var locationClient: FusedLocationProviderClient
     private val client = HttpClient()
+    private lateinit var myLocationPlacemark: PlacemarkMapObject
+    private var myLocationPlacemarkWasSet = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         MapKitFactory.setApiKey("API-key was here")
@@ -74,7 +76,7 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         } else {
-            locationClient.lastLocation
+            locationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener { location ->
                     val point = Point(location.latitude, location.longitude)
                     mapView.map.move(
@@ -82,9 +84,16 @@ class MainActivity : AppCompatActivity() {
                         Animation(Animation.Type.SMOOTH, 1f),
                         null
                     )
-                    val placemark = mapView.map.mapObjects.addPlacemark(point)
-                    placemark.setText("Ура, я тут",
-                        TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false))
+                    if (!myLocationPlacemarkWasSet) {
+                        myLocationPlacemarkWasSet = true
+                        myLocationPlacemark = mapView.map.mapObjects.addPlacemark(point)
+                        myLocationPlacemark.setText(
+                            "Ура, я тут",
+                            TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
+                        )
+                    } else {
+                        myLocationPlacemark.geometry = point
+                    }
                     runBlocking {
                         postLocationToServer(point)
                     }
