@@ -5,11 +5,9 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.yandex.mapkit.Animation
@@ -26,7 +24,6 @@ class MainActivity : AppCompatActivity() {
     var mapView: MapView? = null
     var myLocationPlacemark: PlacemarkMapObject? = null
     val serviceConnection = MyServiceConnection()
-    private var mapFirstOpened = true
     private var binder: RequestingServerService.MyBinder? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,11 +43,7 @@ class MainActivity : AppCompatActivity() {
         requestLocationPermissions()
 
         val startServiceIntent = Intent(this, RequestingServerService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            this.startForegroundService(startServiceIntent)
-        } else {
-            startService(startServiceIntent)
-        }
+        this.startForegroundService(startServiceIntent)
     }
 
     fun requestLocationPermissions() {
@@ -78,13 +71,10 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                requestBackgroundLocationPermission()
-            }
+            requestBackgroundLocationPermission()
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     fun requestBackgroundLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION)

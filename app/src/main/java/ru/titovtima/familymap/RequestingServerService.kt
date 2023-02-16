@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
@@ -28,34 +27,32 @@ class RequestingServerService : Service() {
     private val client = HttpClient()
 
     override fun onCreate() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val pendingIntent: PendingIntent =
-                Intent(this, MainActivity::class.java).let { notificationIntent ->
-                    PendingIntent.getActivity(
-                        this, 0, notificationIntent,
-                        PendingIntent.FLAG_IMMUTABLE
-                    )
-                }
-
-            val notificationChannelId = "myChannelId"
-            NotificationManagerCompat.from(this).createNotificationChannel(
-                NotificationChannel(
-                    notificationChannelId,
-                    "notificationChannel",
-                    NotificationManager.IMPORTANCE_MIN
+        val pendingIntent: PendingIntent =
+            Intent(this, MainActivity::class.java).let { notificationIntent ->
+                PendingIntent.getActivity(
+                    this, 0, notificationIntent,
+                    PendingIntent.FLAG_IMMUTABLE
                 )
-            )
-            val notification: Notification =
-                Notification.Builder(this, notificationChannelId)
-                    .setContentTitle("Отслеживание местоположения")
-                    .setContentText("")
-                    .setSmallIcon(androidx.core.R.drawable.notification_bg)
-                    .setContentIntent(pendingIntent)
-                    .setTicker("")
-                    .build()
+            }
 
-            startForeground(1, notification)
-        }
+        val notificationChannelId = "myChannelId"
+        NotificationManagerCompat.from(this).createNotificationChannel(
+            NotificationChannel(
+                notificationChannelId,
+                "notificationChannel",
+                NotificationManager.IMPORTANCE_MIN
+            )
+        )
+        val notification: Notification =
+            Notification.Builder(this, notificationChannelId)
+                .setContentTitle("Отслеживание местоположения")
+                .setContentText("")
+                .setSmallIcon(androidx.core.R.drawable.notification_bg)
+                .setContentIntent(pendingIntent)
+                .setTicker("")
+                .build()
+
+        startForeground(1, notification)
 
 
         locationClient = LocationServices.getFusedLocationProviderClient(this)
