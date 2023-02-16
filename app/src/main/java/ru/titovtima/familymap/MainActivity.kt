@@ -1,15 +1,17 @@
 package ru.titovtima.familymap
 
 import android.Manifest
+import android.content.ComponentName
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
+import android.os.IBinder
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
@@ -17,24 +19,22 @@ import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.TextStyle
 import com.yandex.mapkit.mapview.MapView
-import io.ktor.client.*
-import io.ktor.client.request.*
-import kotlinx.coroutines.runBlocking
 import ru.titovtima.familymap.databinding.ActivityMainBinding
-import java.util.Date
-import kotlin.math.floor
+import kotlin.math.max
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var mapView: MapView
-    private lateinit var locationClient: FusedLocationProviderClient
-    private val client = HttpClient()
-    private lateinit var myLocationPlacemark: PlacemarkMapObject
-    private var myLocationPlacemarkWasSet = false
+    var mapView: MapView? = null
+    var myLocationPlacemark: PlacemarkMapObject? = null
+    val serviceConnection = MyServiceConnection()
+    private var mapFirstOpened = true
+    private var binder: RequestingServerService.MyBinder? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        MapKitFactory.setApiKey("API-key was here")
+        try {
+            MapKitFactory.setApiKey("API-key was here")
 
-        MapKitFactory.initialize(this)
+            MapKitFactory.initialize(this)
+        } catch (_: Error) {}
 
         val binding = ActivityMainBinding.inflate(layoutInflater)
 
@@ -43,10 +43,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         super.onCreate(savedInstanceState)
 
-        locationClient = LocationServices.getFusedLocationProviderClient(this)
+        requestLocationPermissions()
+
+        val startServiceIntent = Intent(this, RequestingServerService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.startForegroundService(startServiceIntent)
+        } else {
+            startService(startServiceIntent)
+        }
     }
 
-    fun getLocation() {
+    fun requestLocationPermissions() {
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -55,18 +62,13 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            binder?.lastKnownLocation = null
             val locationPermissionRequest = registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions()
             ) { permissions ->
-                when {
-                    permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                        getLocation()
-                    }
-                    permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                        getLocation()
-                    }
-                    else -> {
-                    }
+                if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
+                    permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
+                    binder?.service?.getLocation()
                 }
             }
             locationPermissionRequest.launch(
@@ -76,62 +78,77 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         } else {
-            locationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                .addOnSuccessListener { location ->
-                    val point = Point(location.latitude, location.longitude)
-                    mapView.map.move(
-                        CameraPosition(point, 14.0f, 0.0f, 0.0f),
-                        Animation(Animation.Type.SMOOTH, 1f),
-                        null
-                    )
-                    if (!myLocationPlacemarkWasSet) {
-                        myLocationPlacemarkWasSet = true
-                        myLocationPlacemark = mapView.map.mapObjects.addPlacemark(point)
-                        myLocationPlacemark.setText(
-                            "Ура, я тут",
-                            TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
-                        )
-                    } else {
-                        myLocationPlacemark.geometry = point
-                    }
-                    runBlocking {
-                        postLocationToServer(point)
-                    }
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                requestBackgroundLocationPermission()
+            }
         }
     }
 
-    suspend fun postLocationToServer(point: Point) {
-        val latitude = floor(point.latitude * 1000000).toInt()
-        val longitude = floor(point.longitude * 1000000).toInt()
-        val date = Date().time
-        val stringToPost = "{\"latitude\":$latitude,\"longitude\":$longitude,\"date\":$date}"
-        val response = client.post("https://familymap.titovtima.ru/location") {
-            headers {
-                append("Authorization", "Basic dGVzdC50aXRvdnRpbWE6dGl0b3Z0aW1h")
-                append("Content-Type", "application/json")
-            }
-            setBody(stringToPost)
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun requestBackgroundLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            val locationPermissionRequest = registerForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) { }
+            locationPermissionRequest.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                )
+            )
         }
-        if (response.status.value in 200..299) {
-            Toast.makeText(this, "Location posted", Toast.LENGTH_LONG).show()
+    }
+
+    fun moveMapToLocation(point: Point) {
+        val mapView = this.mapView ?: return
+        val prevZoom = mapView.map.cameraPosition.zoom
+        mapView.map.move(
+            CameraPosition(point, max(14.0f, prevZoom), 0.0f, 0.0f),
+            Animation(Animation.Type.SMOOTH, 1f),
+            null
+        )
+    }
+
+    fun updateLocationPlacemark(point: Point) {
+        val mapView = this.mapView ?: return
+        if (myLocationPlacemark == null) {
+            val placemark = mapView.map.mapObjects.addPlacemark(point)
+            placemark.setText(
+                "Ура, я тут",
+                TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
+            )
+            myLocationPlacemark = placemark
         } else {
-            Toast.makeText(this,
-                "Error posting location\n${response.status.value} ${response.status.description}",
-                Toast.LENGTH_LONG).show()
+            myLocationPlacemark?.geometry = point
         }
     }
 
     override fun onStart() {
         super.onStart()
         MapKitFactory.getInstance().onStart()
-        mapView.onStart()
-        getLocation()
+        mapView?.onStart()
+        val intentBindService = Intent(this, RequestingServerService::class.java)
+        bindService(intentBindService, serviceConnection, 0)
     }
 
     override fun onStop() {
         super.onStop()
         MapKitFactory.getInstance().onStop()
-        mapView.onStop()
+        mapView?.onStop()
+        unbindService(serviceConnection)
+    }
+
+    inner class MyServiceConnection: ServiceConnection {
+        override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
+            if (binder == null) return
+            val myBinder = binder as RequestingServerService.MyBinder
+            myBinder.activity = this@MainActivity
+            this@MainActivity.binder = myBinder
+            binder.service.getLocation()
+        }
+
+        override fun onServiceDisconnected(p0: ComponentName?) {
+        }
     }
 }
