@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     var mapView: MapView? = null
     var myLocationPlacemark: PlacemarkMapObject? = null
     val serviceConnection = MyServiceConnection()
+    private var mapLoadedFirstTime = true
     private var binder: RequestingServerService.MyBinder? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -135,7 +136,11 @@ class MainActivity : AppCompatActivity() {
             val myBinder = binder as RequestingServerService.MyBinder
             myBinder.activity = this@MainActivity
             this@MainActivity.binder = myBinder
-            binder.service.getLocation()
+            if (mapLoadedFirstTime) {
+                mapLoadedFirstTime = false
+                myBinder.lastKnownLocation = null
+            }
+            myBinder.service.getLocation()
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
