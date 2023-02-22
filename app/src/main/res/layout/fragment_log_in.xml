@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".useractivity.LogInFragment">
+
+    <TextView
+        android:id="@+id/labelForInputLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/inputLogin"
+        app:layout_constraintBottom_toBottomOf="@id/inputLogin"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="40sp"
+        android:labelFor="@id/inputLogin"
+        android:text="@string/login"
+        />
+
+    <EditText
+        android:id="@+id/inputLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:minWidth="48dp"
+        android:textSize="40sp"
+        app:layout_constraintLeft_toRightOf="@id/labelForInputLogin"
+        app:layout_constraintTop_toTopOf="parent"
+        android:importantForAutofill="no"
+        />
+
+    <TextView
+        android:id="@+id/labelForInputPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/inputPassword"
+        app:layout_constraintBottom_toBottomOf="@id/inputPassword"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="40sp"
+        android:labelFor="@id/inputPassword"
+        android:text="@string/password"
+        />
+
+    <EditText
+        android:id="@+id/inputPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:minWidth="48dp"
+        android:textSize="40sp"
+        app:layout_constraintLeft_toRightOf="@id/labelForInputPassword"
+        app:layout_constraintTop_toBottomOf="@id/inputLogin"
+        android:importantForAutofill="no"
+        />
+
+    <Button
+        android:id="@+id/logInButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/inputPassword"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="@string/enter"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

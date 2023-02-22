@@ -15,16 +15,15 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.yandex.mapkit.geometry.Point
-import io.ktor.client.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
+import ru.titovtima.familymap.model.Settings
 import kotlin.concurrent.thread
 import kotlin.math.floor
 
 class RequestingServerService : Service() {
     private var binder: RequestingServerService.MyBinder? = null
     private lateinit var locationClient: FusedLocationProviderClient
-    private val client = HttpClient()
 
     override fun onCreate() {
         val pendingIntent: PendingIntent =
@@ -108,7 +107,7 @@ class RequestingServerService : Service() {
         val longitude = floor(location.longitude * 1000000).toInt()
         val date = location.time
         val stringToPost = "{\"latitude\":$latitude,\"longitude\":$longitude,\"date\":$date}"
-        val response = client.post("https://familymap.titovtima.ru/location") {
+        val response = Settings.httpClient.post("https://familymap.titovtima.ru/location") {
             headers {
                 append("Authorization", "Basic dGVzdC50aXRvdnRpbWE6dGl0b3Z0aW1h")
                 append("Content-Type", "application/json")

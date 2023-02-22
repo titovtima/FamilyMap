@@ -9,6 +9,20 @@
     <com.yandex.mapkit.mapview.MapView
         android:id="@+id/mapview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        />
+
+    <ImageButton
+        android:id="@+id/userButton"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_margin="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:contentDescription="@string/user"
+        android:src="@drawable/user"
+        android:scaleType="centerInside"
+        android:background="@android:color/transparent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

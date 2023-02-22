@@ -18,6 +18,7 @@ import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.TextStyle
 import com.yandex.mapkit.mapview.MapView
 import ru.titovtima.familymap.databinding.ActivityMainBinding
+import ru.titovtima.familymap.useractivity.UserActivity
 import kotlin.math.max
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private var binder: RequestingServerService.MyBinder? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         try {
             MapKitFactory.setApiKey("API-key was here")
 
@@ -39,12 +41,17 @@ class MainActivity : AppCompatActivity() {
         mapView = binding.mapview
 
         setContentView(binding.root)
-        super.onCreate(savedInstanceState)
 
         requestLocationPermissions()
 
         val startServiceIntent = Intent(this, RequestingServerService::class.java)
         this.startForegroundService(startServiceIntent)
+
+        binding.userButton.setOnClickListener {
+            val intent = Intent(this, UserActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+        }
     }
 
     fun requestLocationPermissions() {
