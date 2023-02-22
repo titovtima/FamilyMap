@@ -50,6 +50,7 @@ class LogInFragment : Fragment() {
                     }
                 if (response.status.value == 200) {
                     val user = Json.decodeFromString<User>(response.body())
+                    user.authString = authString
                     Settings.user = user
                     parentActivity.showUserSection(user)
                     Log.d("myLogs", user.toString())

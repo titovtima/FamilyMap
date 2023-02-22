@@ -8,6 +8,7 @@ import kotlin.math.floor
 data class User(val login: String,
                 var name: String,
                 val contacts: MutableList<Contact> = mutableListOf()) {
+    var authString: String? = null
 }
 
 @Serializable

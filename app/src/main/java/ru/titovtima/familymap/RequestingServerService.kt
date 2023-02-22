@@ -96,20 +96,22 @@ class RequestingServerService : Service() {
                         binder?.activity?.moveMapToLocation(point)
                     binder?.lastKnownLocation = location
                     runBlocking {
-                        postLocationToServer(location)
+                        val userAuthString = Settings.user?.authString
+                        if (userAuthString != null)
+                            postLocationToServer(location, userAuthString)
                     }
                 }
         }
     }
 
-    suspend fun postLocationToServer(location: Location) {
+    suspend fun postLocationToServer(location: Location, authString: String) {
         val latitude = floor(location.latitude * 1000000).toInt()
         val longitude = floor(location.longitude * 1000000).toInt()
         val date = location.time
         val stringToPost = "{\"latitude\":$latitude,\"longitude\":$longitude,\"date\":$date}"
         val response = Settings.httpClient.post("https://familymap.titovtima.ru/location") {
             headers {
-                append("Authorization", "Basic dGVzdC50aXRvdnRpbWE6dGl0b3Z0aW1h")
+                append("Authorization", "Basic $authString")
                 append("Content-Type", "application/json")
             }
             setBody(stringToPost)
