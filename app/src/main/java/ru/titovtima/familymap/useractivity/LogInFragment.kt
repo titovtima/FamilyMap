@@ -1,7 +1,6 @@
 package ru.titovtima.familymap.useractivity
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -30,7 +29,6 @@ class LogInFragment : Fragment() {
         parentActivity = activity as UserActivity
 
         binding.logInButton.setOnClickListener {
-            Log.d("myLogs", "onClickListener")
             val login = binding.inputLogin.text.toString()
             val password = binding.inputPassword.text.toString()
             if (login.contains(':') || password.contains(':')) {
@@ -42,7 +40,6 @@ class LogInFragment : Fragment() {
             }
             val authString = Base64.getEncoder().encodeToString(("$login:$password").toByteArray())
             runBlocking {
-                Log.d("myLogs", authString)
                 val response = Settings.httpClient
                     .get("https://familymap.titovtima.ru/auth/login") {
                         headers {
@@ -57,9 +54,8 @@ class LogInFragment : Fragment() {
                         ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, authString)
                         ?.apply()
                     parentActivity.showUserSection(user)
-                    Log.d("myLogs", user.toString())
                 } else {
-                    Log.d("myLogs", response.toString())
+                    Toast.makeText(parentActivity, "Не удалось войти", Toast.LENGTH_SHORT).show()
                 }
             }
         }

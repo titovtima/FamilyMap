@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Binder
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
@@ -116,11 +115,9 @@ class RequestingServerService : Service() {
             ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
-            Log.d("myLogs", "getLocation function")
             locationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener { location ->
                     if (location == null) return@addOnSuccessListener
-                    Log.d("myLogs", "success getting location")
                     val point = Point(location.latitude, location.longitude)
                     binder?.activity?.updateLocationPlacemark(point)
                     if (binder?.lastKnownLocation == null)
