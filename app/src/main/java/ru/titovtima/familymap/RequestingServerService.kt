@@ -15,9 +15,14 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.yandex.mapkit.geometry.Point
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import ru.titovtima.familymap.model.Settings
+import ru.titovtima.familymap.model.SharedPrefsKeys
+import ru.titovtima.familymap.model.User
 import kotlin.concurrent.thread
 import kotlin.math.floor
 
@@ -53,6 +58,18 @@ class RequestingServerService : Service() {
 
         startForeground(1, notification)
 
+        if (Settings.sharedPreferencesObject == null)
+            Settings.sharedPreferencesObject = getSharedPreferences("settings", MODE_PRIVATE)
+
+        if (Settings.user == null) {
+            val authString = Settings.sharedPreferencesObject
+                ?.getString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, null)
+            if (authString != null) {
+                runBlocking {
+                    getUserFromServer(authString)
+                }
+            }
+        }
 
         locationClient = LocationServices.getFusedLocationProviderClient(this)
         thread {
@@ -60,6 +77,20 @@ class RequestingServerService : Service() {
                 getLocation()
                 Thread.sleep(40000)
             }
+        }
+    }
+
+    suspend fun getUserFromServer(authString: String) {
+        val response = Settings.httpClient
+            .get("https://familymap.titovtima.ru/auth/login") {
+                headers {
+                    append("Authorization", "Basic $authString")
+                }
+            }
+        if (response.status.value == 200) {
+            val user = Json.decodeFromString<User>(response.body())
+            user.authString = authString
+            Settings.user = user
         }
     }
 

@@ -1,5 +1,6 @@
 package ru.titovtima.familymap.model
 
+import android.content.SharedPreferences
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -17,5 +18,10 @@ class Settings {
                 })
             }
         }
+        var sharedPreferencesObject: SharedPreferences? = null
     }
+}
+
+enum class SharedPrefsKeys(val string: String) {
+    KEY_USER_AUTH_STRING("authString")
 }

@@ -14,6 +14,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import ru.titovtima.familymap.databinding.FragmentLogInBinding
 import ru.titovtima.familymap.model.Settings
+import ru.titovtima.familymap.model.SharedPrefsKeys
 import ru.titovtima.familymap.model.User
 import java.util.Base64
 
@@ -43,7 +44,7 @@ class LogInFragment : Fragment() {
             runBlocking {
                 Log.d("myLogs", authString)
                 val response = Settings.httpClient
-                    .post("https://familymap.titovtima.ru/auth/login") {
+                    .get("https://familymap.titovtima.ru/auth/login") {
                         headers {
                             append("Authorization", "Basic $authString")
                         }
@@ -52,6 +53,9 @@ class LogInFragment : Fragment() {
                     val user = Json.decodeFromString<User>(response.body())
                     user.authString = authString
                     Settings.user = user
+                    Settings.sharedPreferencesObject?.edit()
+                        ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, authString)
+                        ?.apply()
                     parentActivity.showUserSection(user)
                     Log.d("myLogs", user.toString())
                 } else {
