@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".useractivity.LogInFragment">
+    tools:context=".useractivity.RegistrationFragment">
 
     <TextView
         android:id="@+id/labelForInputLogin"
@@ -54,26 +54,74 @@
         android:importantForAutofill="no"
         />
 
-    <Button
-        android:id="@+id/logInButton"
+    <TextView
+        android:id="@+id/labelForInputRepeatPassword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/inputPassword"
+        app:layout_constraintTop_toTopOf="@id/inputRepeatPassword"
+        app:layout_constraintBottom_toBottomOf="@id/inputRepeatPassword"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:text="@string/enter"
+        android:textSize="25sp"
+        android:labelFor="@id/inputPassword"
+        android:text="@string/repeat_password"
+        />
+
+    <EditText
+        android:id="@+id/inputRepeatPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:minWidth="48dp"
+        android:textSize="25sp"
+        app:layout_constraintLeft_toRightOf="@id/labelForInputRepeatPassword"
+        app:layout_constraintTop_toBottomOf="@id/inputPassword"
+        android:importantForAutofill="no"
+        />
+
+    <TextView
+        android:id="@+id/labelForInputName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/inputName"
+        app:layout_constraintBottom_toBottomOf="@id/inputName"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="25sp"
+        android:labelFor="@id/inputPassword"
+        android:text="@string/user_name"
+        />
+
+    <EditText
+        android:id="@+id/inputName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:minWidth="48dp"
+        android:textSize="25sp"
+        app:layout_constraintLeft_toRightOf="@id/labelForInputName"
+        app:layout_constraintTop_toBottomOf="@id/inputRepeatPassword"
+        android:importantForAutofill="no"
         />
 
     <Button
         android:id="@+id/registrationButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/logInButton"
+        app:layout_constraintTop_toBottomOf="@id/inputName"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="@string/registration"
+        />
+
+    <Button
+        android:id="@+id/logInButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/registrationButton"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:background="@android:color/transparent"
         android:textColor="@color/black"
-        android:text="@string/registration"
+        android:text="@string/enter"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

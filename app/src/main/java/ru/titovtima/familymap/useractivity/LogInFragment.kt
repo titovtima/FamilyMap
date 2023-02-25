@@ -28,6 +28,10 @@ class LogInFragment : Fragment() {
 
         parentActivity = activity as UserActivity
 
+        binding.registrationButton.setOnClickListener {
+            parentActivity.showRegistrationSection()
+        }
+
         binding.logInButton.setOnClickListener {
             val login = binding.inputLogin.text.toString()
             val password = binding.inputPassword.text.toString()

@@ -28,11 +28,18 @@ class UserActivity : AppCompatActivity() {
         binding.userLoginTextView.text = "Вы не представились"
         supportFragmentManager.beginTransaction()
             .setReorderingAllowed(true)
-            .add(binding.fragmentsContainer.id, LogInFragment::class.java, null)
+            .replace(binding.fragmentsContainer.id, LogInFragment::class.java, null)
             .commit()
     }
 
     fun showUserSection(user: User) {
         binding.userLoginTextView.text = user.name
+    }
+
+    fun showRegistrationSection() {
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .replace(binding.fragmentsContainer.id, RegistrationFragment::class.java, null)
+            .commit()
     }
 }

@@ -4,4 +4,7 @@
     <string name="password">Пароль</string>
     <string name="enter">Войти</string>
     <string name="user">Пользователь</string>
+    <string name="repeat_password">Повторите пароль</string>
+    <string name="registration">Регистрация</string>
+    <string name="user_name">Имя пользователя</string>
 </resources>
