@@ -7,4 +7,5 @@
     <string name="repeat_password">Повторите пароль</string>
     <string name="registration">Регистрация</string>
     <string name="user_name">Имя пользователя</string>
+    <string name="logout">Выйти</string>
 </resources>

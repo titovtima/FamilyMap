@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import ru.titovtima.familymap.databinding.ActivityUserBinding
 import ru.titovtima.familymap.model.Settings
-import ru.titovtima.familymap.model.User
 
 
 class UserActivity : AppCompatActivity() {
@@ -20,7 +19,7 @@ class UserActivity : AppCompatActivity() {
         if (user == null) {
             showLogInSection()
         } else {
-            showUserSection(user)
+            showUserSection()
         }
     }
 
@@ -32,8 +31,17 @@ class UserActivity : AppCompatActivity() {
             .commit()
     }
 
-    fun showUserSection(user: User) {
+    fun showUserSection() {
+        val user = Settings.user
+        if (user == null) {
+            showLogInSection()
+            return
+        }
         binding.userLoginTextView.text = user.name
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .replace(binding.fragmentsContainer.id, UserInfoFragment::class.java, null)
+            .commit()
     }
 
     fun showRegistrationSection() {

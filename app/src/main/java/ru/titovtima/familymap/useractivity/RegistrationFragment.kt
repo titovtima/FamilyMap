@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
 import ru.titovtima.familymap.databinding.FragmentRegistrationBinding
 import ru.titovtima.familymap.model.Settings
+import ru.titovtima.familymap.model.SharedPrefsKeys
 import ru.titovtima.familymap.model.User
 import java.util.Base64
 
@@ -53,7 +54,10 @@ class RegistrationFragment : Fragment() {
                     user.authString = Base64.getEncoder()
                         .encodeToString("$login:$password".toByteArray())
                     Settings.user = user
-                    parentActivity.showUserSection(user)
+                    Settings.sharedPreferencesObject?.edit()
+                        ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, user.authString)
+                        ?.apply()
+                    parentActivity.showUserSection()
                 } else {
                     Toast.makeText(parentActivity, "Ошибка регистрации", Toast.LENGTH_SHORT).show()
                 }

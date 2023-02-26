@@ -57,7 +57,7 @@ class LogInFragment : Fragment() {
                     Settings.sharedPreferencesObject?.edit()
                         ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, authString)
                         ?.apply()
-                    parentActivity.showUserSection(user)
+                    parentActivity.showUserSection()
                 } else {
                     Toast.makeText(parentActivity, "Не удалось войти", Toast.LENGTH_SHORT).show()
                 }
