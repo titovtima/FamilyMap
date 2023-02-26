@@ -115,7 +115,7 @@ class RequestingServerService : Service() {
             ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
-            locationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            locationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
                 .addOnSuccessListener { location ->
                     if (location == null) return@addOnSuccessListener
                     val point = Point(location.latitude, location.longitude)
