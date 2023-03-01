@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.result.contract.ActivityResultContracts
@@ -54,14 +55,41 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         requestLocationPermissions()
-
-        val startServiceIntent = Intent(this, LocationService::class.java)
-        this.startForegroundService(startServiceIntent)
+        requestForegroundServicePermission()
 
         binding.userButton.setOnClickListener {
             val intent = Intent(this, UserActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             startActivity(intent)
+        }
+    }
+
+    private fun requestForegroundServicePermission() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.FOREGROUND_SERVICE
+            )!= PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            )!= PackageManager.PERMISSION_GRANTED) {
+            val foregroundServicePermissionRequest = registerForActivityResult(
+                ActivityResultContracts.RequestMultiplePermissions()
+            ) { permissions ->
+                if (permissions.getOrDefault(Manifest.permission.FOREGROUND_SERVICE, false) &&
+                    permissions.getOrDefault(Manifest.permission.POST_NOTIFICATIONS, false)) {
+                    val startServiceIntent = Intent(this, LocationService::class.java)
+                    this.startForegroundService(startServiceIntent)
+                }
+            }
+            val permissionsArray = mutableListOf(Manifest.permission.FOREGROUND_SERVICE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionsArray.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            foregroundServicePermissionRequest.launch(permissionsArray.toTypedArray())
+        } else {
+            val startServiceIntent = Intent(this, LocationService::class.java)
+            this.startForegroundService(startServiceIntent)
         }
     }
 
