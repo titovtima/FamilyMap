@@ -18,4 +18,7 @@
     <string name="contact">контакт</string>
     <string name="login_fragment_header">Вы не представились</string>
     <string name="registration_fragment_header">Новый пользователь</string>
+    <string name="delete">Удалить</string>
+    <string name="error_updating_contact">Ошибка при изменении контакта</string>
+    <string name="error_deleting_contact">Не удалось удалить контакт</string>
 </resources>

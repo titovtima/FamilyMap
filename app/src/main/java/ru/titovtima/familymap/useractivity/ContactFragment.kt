@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
+import ru.titovtima.familymap.MainActivity
+import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentContactBinding
 import ru.titovtima.familymap.model.Contact
 import ru.titovtima.familymap.model.Settings
@@ -51,6 +53,13 @@ class ContactFragment : Fragment() {
             }
         }
 
+        binding.delete.setBackgroundColor(resources.getColor(R.color.red, parentActivity.theme))
+        binding.delete.setOnClickListener {
+            runBlocking {
+                postDeletingToServer()
+            }
+        }
+
         parentActivity.onBackPressedDispatcher.addCallback(this) {
             parentActivity.showUserSection()
         }
@@ -81,7 +90,31 @@ class ContactFragment : Fragment() {
             binding.save.visibility = View.GONE
             true
         } else {
-            Toast.makeText(parentActivity, "Ошибка при изменении контакта", Toast.LENGTH_SHORT)
+            Toast.makeText(parentActivity, getString(R.string.error_updating_contact), Toast.LENGTH_SHORT)
+                .show()
+            false
+        }
+    }
+
+    private suspend fun postDeletingToServer(): Boolean {
+        val authString = Settings.user?.authString ?: return false
+        val contactId = contact.contactId
+        val jsonString = "{\"contactId\":$contactId}"
+        val response = Settings.httpClient.post(
+            "https://familymap.titovtima.ru/contacts/delete") {
+            headers {
+                append("Authorization", "Basic $authString")
+                append("Content-Type", "application/json")
+            }
+            setBody(jsonString)
+        }
+        return if (response.status.value == 200) {
+            Settings.user?.contacts?.removeIf { it.contactId == contactId }
+            parentActivity.showUserSection()
+            MainActivity.getInstance()?.deleteContactLocationPlacemark(contactId)
+            true
+        } else {
+            Toast.makeText(parentActivity, getString(R.string.error_deleting_contact), Toast.LENGTH_SHORT)
                 .show()
             false
         }

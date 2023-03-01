@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this
         try {
             MapKitFactory.setApiKey("API-key was here")
             MapKitFactory.initialize(this)
@@ -129,6 +130,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun deleteContactLocationPlacemark(contactId: Int) {
+        val mapView = mapView ?: return
+        val placemark = contactsPlacemarks[contactId]
+        if (placemark != null) {
+            runOnUiThread {
+                mapView.map.mapObjects.remove(placemark)
+                contactsPlacemarks[contactId] = null
+            }
+        }
+    }
+
     fun updateContactLocationPlacemark(contactId: Int) {
         val mapView = this.mapView ?: return
         val contact = Settings.user?.contacts?.find { it.contactId == contactId } ?: return
@@ -177,6 +189,11 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         isOnForeground = false
         binder?.service?.updateContactsLocations()
+    }
+
+    companion object {
+        private var instance: MainActivity? = null
+        fun getInstance() = instance
     }
 
     inner class MyServiceConnection: ServiceConnection {
