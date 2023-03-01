@@ -28,6 +28,7 @@ class UserInfoFragment : Fragment() {
             return binding.root
         }
 
+        binding.userName.text = user.name
         binding.loginView.text = user.login
 
         binding.logout.setOnClickListener {

@@ -7,6 +7,18 @@
     tools:context=".useractivity.LogInFragment">
 
     <TextView
+        android:id="@+id/header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="20dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textSize="35sp"
+        android:text="@string/login_fragment_header"
+        />
+
+    <TextView
         android:id="@+id/labelForInputLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -26,7 +38,7 @@
         android:minWidth="48dp"
         android:textSize="25sp"
         app:layout_constraintLeft_toRightOf="@id/labelForInputLogin"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/header"
         android:importantForAutofill="no"
         />
 

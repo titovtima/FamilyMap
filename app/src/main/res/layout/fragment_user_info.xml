@@ -7,10 +7,21 @@
     tools:context=".useractivity.UserInfoFragment">
 
     <TextView
-        android:id="@+id/loginText"
+        android:id="@+id/userName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="20dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textSize="35sp"
+        />
+
+    <TextView
+        android:id="@+id/loginText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/userName"
         app:layout_constraintLeft_toLeftOf="parent"
         android:textSize="25sp"
         android:text="@string/login"
@@ -20,7 +31,7 @@
         android:id="@+id/loginView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/loginText"
         android:textSize="25sp"
         android:layout_marginStart="10dp"
         app:layout_constraintLeft_toRightOf="@id/loginText"

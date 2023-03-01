@@ -16,4 +16,6 @@
     <string name="new_contact">Новый контакт</string>
     <string name="add">Добавить</string>
     <string name="contact">контакт</string>
+    <string name="login_fragment_header">Вы не представились</string>
+    <string name="registration_fragment_header">Новый пользователь</string>
 </resources>

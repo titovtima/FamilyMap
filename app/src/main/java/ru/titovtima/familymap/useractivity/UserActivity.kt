@@ -24,7 +24,6 @@ class UserActivity : AppCompatActivity() {
     }
 
     fun showLogInSection() {
-        binding.userLoginTextView.text = "Вы не представились"
         supportFragmentManager.beginTransaction()
             .setReorderingAllowed(true)
             .replace(binding.fragmentsContainer.id, LogInFragment::class.java, null)
@@ -37,7 +36,6 @@ class UserActivity : AppCompatActivity() {
             showLogInSection()
             return
         }
-        binding.userLoginTextView.text = user.name
         supportFragmentManager.beginTransaction()
             .setReorderingAllowed(true)
             .replace(binding.fragmentsContainer.id, UserInfoFragment::class.java, null)
