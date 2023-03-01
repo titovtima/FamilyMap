@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         instance = this
         try {
-            MapKitFactory.setApiKey("API-key was here")
+            MapKitFactory.setApiKey(getString(R.string.yandex_mapkit_apiKey))
             MapKitFactory.initialize(this)
         } catch (_: Error) {}
 
