@@ -40,8 +40,8 @@ class NewContactDialogFragment : DialogFragment() {
     private suspend fun postNewContact(): Boolean {
         val authString = Settings.user?.authString ?: return false
         val login = binding.loginInput.text.toString()
+        val showLocation = binding.checkboxShowLocation.isChecked
         val shareLocation = binding.checkboxShareLocation.isChecked
-        val showLocation = binding.checkboxShareLocation.isChecked
         val jsonString = "{\"login\":\"$login\"," +
                 "\"shareLocation\":$shareLocation," +
                 "\"showLocation\":$showLocation}"

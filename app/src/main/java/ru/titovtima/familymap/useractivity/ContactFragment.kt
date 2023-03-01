@@ -88,6 +88,9 @@ class ContactFragment : Fragment() {
             contact.shareLocation = shareLocation
             Settings.user?.contacts?.replaceAll { if (it.contactId == contactId) contact else it }
             binding.save.visibility = View.GONE
+            if (!showLocation) {
+                MainActivity.getInstance()?.deleteContactLocationPlacemark(contactId)
+            }
             true
         } else {
             Toast.makeText(parentActivity, getString(R.string.error_updating_contact), Toast.LENGTH_SHORT)

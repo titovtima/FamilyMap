@@ -144,6 +144,7 @@ class MainActivity : AppCompatActivity() {
     fun updateContactLocationPlacemark(contactId: Int) {
         val mapView = this.mapView ?: return
         val contact = Settings.user?.contacts?.find { it.contactId == contactId } ?: return
+        if (!contact.showLocation) return
         val location = contact.lastKnownLocation ?: return
         val placemark = contactsPlacemarks[contactId]
         val point = Point(location.latitude.toDouble() / 1000000,
@@ -188,7 +189,6 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         isOnForeground = false
-        binder?.service?.updateContactsLocations()
     }
 
     companion object {
