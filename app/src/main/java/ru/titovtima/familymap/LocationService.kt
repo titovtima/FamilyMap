@@ -19,9 +19,8 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import ru.titovtima.familymap.model.Settings
-import ru.titovtima.familymap.model.SharedPrefsKeys
-import ru.titovtima.familymap.model.User
+import ru.titovtima.familymap.model.*
+import java.util.Base64
 import kotlin.concurrent.thread
 import kotlin.math.floor
 
@@ -73,13 +72,14 @@ class LocationService : Service() {
         locationClient = LocationServices.getFusedLocationProviderClient(this)
         thread {
             while (true) {
-                getLocation()
+                postLocation()
+                updateContactsLocations()
                 Thread.sleep(40000)
             }
         }
     }
 
-    suspend fun getUserFromServer(authString: String) {
+    private suspend fun getUserFromServer(authString: String) {
         val response = Settings.httpClient
             .get("https://familymap.titovtima.ru/auth/login") {
                 headers {
@@ -108,7 +108,7 @@ class LocationService : Service() {
         return true
     }
 
-    fun getLocation() {
+    fun postLocation() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED &&
@@ -119,7 +119,7 @@ class LocationService : Service() {
                 .addOnSuccessListener { location ->
                     if (location == null) return@addOnSuccessListener
                     val point = Point(location.latitude, location.longitude)
-                    binder?.activity?.updateLocationPlacemark(point)
+                    binder?.activity?.updateMyLocationPlacemark(point)
                     if (binder?.lastKnownLocation == null)
                         binder?.activity?.moveMapToLocation(point)
                     binder?.lastKnownLocation = location
@@ -132,7 +132,7 @@ class LocationService : Service() {
         }
     }
 
-    suspend fun postLocationToServer(location: Location, authString: String) {
+    private suspend fun postLocationToServer(location: Location, authString: String) {
         val latitude = floor(location.latitude * 1000000).toInt()
         val longitude = floor(location.longitude * 1000000).toInt()
         val date = location.time
@@ -150,6 +150,35 @@ class LocationService : Service() {
             Toast.makeText(this,
                 "Error posting location\n${response.status.value} ${response.status.description}",
                 Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun updateContactsLocations() {
+        val user = Settings.user ?: return
+        val authString = user.authString ?: return
+        for (contact in user.contacts) {
+            if (!contact.showLocation)
+                continue
+            runBlocking {
+                getContactLocationFromServer(contact, authString)
+            }
+        }
+    }
+
+    private suspend fun getContactLocationFromServer(contact: Contact, authString: String) {
+        val url = "https://familymap.titovtima.ru/location/last/${contact.login}"
+        val response = Settings.httpClient.get(url) {
+            headers {
+                append("Authorization", "Basic $authString")
+            }
+        }
+        if (response.status.value == 200) {
+            val body = response.body<String>()
+            val location = MyLocation.readFromByteArray(Base64.getDecoder().decode(body)) ?: return
+            val lastKnownLocation = contact.lastKnownLocation
+            if (lastKnownLocation == null || location.date > lastKnownLocation.date)
+                contact.lastKnownLocation = location
+            binder?.activity?.updateContactLocationPlacemark(contact.contactId)
         }
     }
 

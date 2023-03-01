@@ -18,13 +18,15 @@ import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.map.TextStyle
 import com.yandex.mapkit.mapview.MapView
 import ru.titovtima.familymap.databinding.ActivityMainBinding
+import ru.titovtima.familymap.model.Settings
 import ru.titovtima.familymap.useractivity.UserActivity
 import kotlin.math.max
 
 class MainActivity : AppCompatActivity() {
-    var mapView: MapView? = null
-    var myLocationPlacemark: PlacemarkMapObject? = null
-    val serviceConnection = MyServiceConnection()
+    private var mapView: MapView? = null
+    private var myLocationPlacemark: PlacemarkMapObject? = null
+    private var contactsPlacemarks = mutableMapOf<Int, PlacemarkMapObject?>()
+    private val serviceConnection = MyServiceConnection()
     private var mapLoadedFirstTime = true
     private var binder: LocationService.MyBinder? = null
 
@@ -32,7 +34,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         try {
             MapKitFactory.setApiKey("API-key was here")
-
             MapKitFactory.initialize(this)
         } catch (_: Error) {}
 
@@ -54,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun requestLocationPermissions() {
+    private fun requestLocationPermissions() {
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -69,7 +70,7 @@ class MainActivity : AppCompatActivity() {
             ) { permissions ->
                 if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
                     permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
-                    binder?.service?.getLocation()
+                    binder?.service?.postLocation()
                 }
             }
             locationPermissionRequest.launch(
@@ -83,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun requestBackgroundLocationPermission() {
+    private fun requestBackgroundLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             != PackageManager.PERMISSION_GRANTED) {
@@ -108,17 +109,44 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    fun updateLocationPlacemark(point: Point) {
+    fun updateMyLocationPlacemark(point: Point) {
         val mapView = this.mapView ?: return
         if (myLocationPlacemark == null) {
-            val placemark = mapView.map.mapObjects.addPlacemark(point)
-            placemark.setText(
-                "Ура, я тут",
-                TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
-            )
-            myLocationPlacemark = placemark
+            runOnUiThread {
+                val placemark = mapView.map.mapObjects.addPlacemark(point)
+                placemark.setText(
+                    "Ура, я тут",
+                    TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
+                )
+                myLocationPlacemark = placemark
+            }
         } else {
-            myLocationPlacemark?.geometry = point
+            runOnUiThread {
+                myLocationPlacemark?.geometry = point
+            }
+        }
+    }
+
+    fun updateContactLocationPlacemark(contactId: Int) {
+        val mapView = this.mapView ?: return
+        val contact = Settings.user?.contacts?.find { it.contactId == contactId } ?: return
+        val location = contact.lastKnownLocation ?: return
+        val placemark = contactsPlacemarks[contactId]
+        val point = Point(location.latitude.toDouble() / 1000000,
+            location.longitude.toDouble() / 1000000)
+        if (placemark == null) {
+            runOnUiThread {
+                val newPlacemark = mapView.map.mapObjects.addPlacemark(point)
+                newPlacemark.setText(
+                    contact.name,
+                    TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
+                )
+                contactsPlacemarks[contactId] = newPlacemark
+            }
+        } else {
+            runOnUiThread {
+                contactsPlacemarks[contactId]?.geometry = point
+            }
         }
     }
 
@@ -147,7 +175,7 @@ class MainActivity : AppCompatActivity() {
                 mapLoadedFirstTime = false
                 myBinder.lastKnownLocation = null
             }
-            myBinder.service.getLocation()
+            myBinder.service.postLocation()
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
