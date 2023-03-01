@@ -25,8 +25,8 @@ import ru.titovtima.familymap.model.User
 import kotlin.concurrent.thread
 import kotlin.math.floor
 
-class RequestingServerService : Service() {
-    private var binder: RequestingServerService.MyBinder? = null
+class LocationService : Service() {
+    private var binder: LocationService.MyBinder? = null
     private lateinit var locationClient: FusedLocationProviderClient
 
     override fun onCreate() {
@@ -155,7 +155,7 @@ class RequestingServerService : Service() {
 
     inner class MyBinder: Binder() {
         var activity: MainActivity? = null
-        val service = this@RequestingServerService
+        val service = this@LocationService
         var lastKnownLocation: Location? = null
     }
 }

@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     var myLocationPlacemark: PlacemarkMapObject? = null
     val serviceConnection = MyServiceConnection()
     private var mapLoadedFirstTime = true
-    private var binder: RequestingServerService.MyBinder? = null
+    private var binder: LocationService.MyBinder? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         requestLocationPermissions()
 
-        val startServiceIntent = Intent(this, RequestingServerService::class.java)
+        val startServiceIntent = Intent(this, LocationService::class.java)
         this.startForegroundService(startServiceIntent)
 
         binding.userButton.setOnClickListener {
@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         MapKitFactory.getInstance().onStart()
         mapView?.onStart()
-        val intentBindService = Intent(this, RequestingServerService::class.java)
+        val intentBindService = Intent(this, LocationService::class.java)
         bindService(intentBindService, serviceConnection, 0)
     }
 
@@ -140,7 +140,7 @@ class MainActivity : AppCompatActivity() {
     inner class MyServiceConnection: ServiceConnection {
         override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
             if (binder == null) return
-            val myBinder = binder as RequestingServerService.MyBinder
+            val myBinder = binder as LocationService.MyBinder
             myBinder.activity = this@MainActivity
             this@MainActivity.binder = myBinder
             if (mapLoadedFirstTime) {
