@@ -1,7 +1,6 @@
 package ru.titovtima.familymap.useractivity
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -24,7 +23,6 @@ class ContactFragment : Fragment() {
         val contactId = arguments?.getInt("contactId")
         contact = Settings.user?.contacts?.find { contact -> contact.contactId == contactId }
             ?: throw IllegalStateException("Contact fragment with no contact")
-        Log.d("myLogs", contact.toString())
     }
 
     override fun onCreateView(
@@ -79,7 +77,6 @@ class ContactFragment : Fragment() {
         return if (response.status.value == 200) {
             contact.showLocation = showLocation
             contact.shareLocation = shareLocation
-            Log.d("myLogs", "Write: $contact")
             Settings.user?.contacts?.replaceAll { if (it.contactId == contactId) contact else it }
             binding.save.visibility = View.GONE
             true
