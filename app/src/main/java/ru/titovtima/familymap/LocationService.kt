@@ -72,8 +72,12 @@ class LocationService : Service() {
         locationClient = LocationServices.getFusedLocationProviderClient(this)
         thread {
             while (true) {
-                postLocation()
-                updateContactsLocations()
+                val authString = Settings.user?.authString
+                if (authString != null) {
+                    postLocation(authString)
+                    if (binder?.activity?.isOnForeground == true)
+                        updateContactsLocations()
+                }
                 Thread.sleep(40000)
             }
         }
@@ -108,7 +112,7 @@ class LocationService : Service() {
         return true
     }
 
-    fun postLocation() {
+    fun postLocation(authString: String) {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED &&
@@ -124,9 +128,7 @@ class LocationService : Service() {
                         binder?.activity?.moveMapToLocation(point)
                     binder?.lastKnownLocation = location
                     runBlocking {
-                        val userAuthString = Settings.user?.authString
-                        if (userAuthString != null)
-                            postLocationToServer(location, userAuthString)
+                        postLocationToServer(location, authString)
                     }
                 }
         }
@@ -153,7 +155,7 @@ class LocationService : Service() {
         }
     }
 
-    private fun updateContactsLocations() {
+    fun updateContactsLocations() {
         val user = Settings.user ?: return
         val authString = user.authString ?: return
         for (contact in user.contacts) {

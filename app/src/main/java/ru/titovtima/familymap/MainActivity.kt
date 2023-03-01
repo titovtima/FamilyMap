@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private val serviceConnection = MyServiceConnection()
     private var mapLoadedFirstTime = true
     private var binder: LocationService.MyBinder? = null
+    var isOnForeground = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +71,8 @@ class MainActivity : AppCompatActivity() {
             ) { permissions ->
                 if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
                     permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
-                    binder?.service?.postLocation()
+                    val authString = Settings.user?.authString ?: return@registerForActivityResult
+                    binder?.service?.postLocation(authString)
                 }
             }
             locationPermissionRequest.launch(
@@ -165,6 +167,18 @@ class MainActivity : AppCompatActivity() {
         unbindService(serviceConnection)
     }
 
+    override fun onResume() {
+        super.onResume()
+        isOnForeground = true
+        binder?.service?.updateContactsLocations()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isOnForeground = false
+        binder?.service?.updateContactsLocations()
+    }
+
     inner class MyServiceConnection: ServiceConnection {
         override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
             if (binder == null) return
@@ -175,7 +189,10 @@ class MainActivity : AppCompatActivity() {
                 mapLoadedFirstTime = false
                 myBinder.lastKnownLocation = null
             }
-            myBinder.service.postLocation()
+            val user = Settings.user ?: return
+            val authString = user.authString ?: return
+            myBinder.service.postLocation(authString)
+            myBinder.service.updateContactsLocations()
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {
