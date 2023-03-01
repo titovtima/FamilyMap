@@ -16,6 +16,7 @@ data class Contact(val contactId: Int,
                    val login: String,
                    var name: String,
                    var showLocation: Boolean = true,
+                   var shareLocation: Boolean = true,
                    var lastKnownLocation: MyLocation? = null
 )
 

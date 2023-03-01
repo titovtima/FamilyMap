@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".useractivity.NewContactDialogFragment">
+
+    <TextView
+        android:id="@+id/newContactLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textSize="40sp"
+        android:text="@string/new_contact"
+        />
+
+    <TextView
+        android:id="@+id/loginText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/newContactLabel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginStart="20dp"
+        android:textSize="20sp"
+        android:text="@string/login"
+        android:labelFor="@id/loginInput"
+        />
+
+    <EditText
+        android:id="@+id/loginInput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/loginText"
+        app:layout_constraintLeft_toRightOf="@id/loginText"
+        android:layout_marginStart="20dp"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        />
+
+    <CheckBox
+        android:id="@+id/checkboxShareLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/shareLocationText"
+        app:layout_constraintBottom_toBottomOf="@id/shareLocationText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/shareLocationText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/loginInput"
+        app:layout_constraintLeft_toRightOf="@id/checkboxShareLocation"
+        android:text="@string/share_location"
+        android:textSize="18sp"
+        />
+
+    <CheckBox
+        android:id="@+id/checkboxShowLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/showLocationText"
+        app:layout_constraintBottom_toBottomOf="@id/showLocationText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/showLocationText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/shareLocationText"
+        app:layout_constraintLeft_toRightOf="@id/checkboxShowLocation"
+        android:text="@string/show_location"
+        android:textSize="18sp"
+        />
+
+    <Button
+        android:id="@+id/submit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/showLocationText"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:textSize="20sp"
+        android:text="@string/add"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

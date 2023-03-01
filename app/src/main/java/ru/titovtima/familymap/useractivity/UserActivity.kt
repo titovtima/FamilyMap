@@ -50,4 +50,12 @@ class UserActivity : AppCompatActivity() {
             .replace(binding.fragmentsContainer.id, RegistrationFragment::class.java, null)
             .commit()
     }
+
+    fun showContactFragment(contactId: Int) {
+        val contactFragment = ContactFragment.newInstance(contactId)
+        supportFragmentManager.beginTransaction()
+            .setReorderingAllowed(true)
+            .replace(binding.fragmentsContainer.id, contactFragment)
+            .commit()
+    }
 }

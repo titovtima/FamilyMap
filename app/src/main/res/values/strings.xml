@@ -8,4 +8,12 @@
     <string name="registration">Регистрация</string>
     <string name="user_name">Имя пользователя</string>
     <string name="logout">Выйти</string>
+    <string name="list_of_contacts">Список контактов</string>
+    <string name="add_contact">+ добавить контакт</string>
+    <string name="share_location">дать доступ к местоположению</string>
+    <string name="show_location">показывать местоположение</string>
+    <string name="save">Сохранить</string>
+    <string name="new_contact">Новый контакт</string>
+    <string name="add">Добавить</string>
+    <string name="contact">контакт</string>
 </resources>

@@ -36,4 +36,24 @@
         android:text="@string/logout"
         />
 
+    <TextView
+        android:id="@+id/contactsListHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/logout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="30sp"
+        android:text="@string/list_of_contacts"
+        />
+
+    <LinearLayout
+        android:id="@+id/contactsListLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/contactsListHeader"
+        android:orientation="vertical"
+        >
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

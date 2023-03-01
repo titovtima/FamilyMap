@@ -1,10 +1,13 @@
 package ru.titovtima.familymap.useractivity
 
+import android.graphics.Typeface
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentUserInfoBinding
 import ru.titovtima.familymap.model.Settings
 import ru.titovtima.familymap.model.SharedPrefsKeys
@@ -18,7 +21,7 @@ class UserInfoFragment : Fragment() {
     ): View {
         val binding = FragmentUserInfoBinding.inflate(inflater, container, false)
 
-        parentActivity = activity as UserActivity
+        parentActivity = requireActivity() as UserActivity
         val user = Settings.user
         if (user == null) {
             parentActivity.showLogInSection()
@@ -34,6 +37,25 @@ class UserInfoFragment : Fragment() {
                 ?.apply()
             parentActivity.showLogInSection()
         }
+
+        for (contact in user.contacts) {
+            val textView = TextView(parentActivity)
+            textView.text = contact.name
+            textView.textSize = 25f
+            textView.setOnClickListener {
+                parentActivity.showContactFragment(contact.contactId)
+            }
+            binding.contactsListLayout.addView(textView)
+        }
+
+        val textView = TextView(parentActivity)
+        textView.setText(R.string.add_contact)
+        textView.textSize = 25f
+        textView.setTypeface(null, Typeface.ITALIC)
+        textView.setOnClickListener {
+            NewContactDialogFragment().show(childFragmentManager, "newContact")
+        }
+        binding.contactsListLayout.addView(textView)
 
         return binding.root
     }
