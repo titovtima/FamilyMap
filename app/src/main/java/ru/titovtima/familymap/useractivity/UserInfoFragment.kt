@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.view.setPadding
 import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentUserInfoBinding
 import ru.titovtima.familymap.model.Settings
@@ -43,6 +44,8 @@ class UserInfoFragment : Fragment() {
             val textView = TextView(parentActivity)
             textView.text = contact.name
             textView.textSize = 25f
+            textView.setBackgroundResource(R.drawable.border)
+            textView.setPadding(10)
             textView.setOnClickListener {
                 parentActivity.showContactFragment(contact.contactId)
             }
@@ -53,6 +56,8 @@ class UserInfoFragment : Fragment() {
         textView.setText(R.string.add_contact)
         textView.textSize = 25f
         textView.setTypeface(null, Typeface.ITALIC)
+        textView.setBackgroundResource(R.drawable.border)
+        textView.setPadding(10)
         textView.setOnClickListener {
             NewContactDialogFragment().show(childFragmentManager, "newContact")
         }
