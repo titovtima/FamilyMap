@@ -21,4 +21,11 @@
     <string name="delete">Удалить</string>
     <string name="error_updating_contact">Ошибка при изменении контакта</string>
     <string name="error_deleting_contact">Не удалось удалить контакт</string>
+    <string name="error_adding_contact">Ошибка при добавлении контакта</string>
+    <string name="no_auth_string">Пользователь не опередён</string>
+    <string name="login_fails_regex_match">Логин может содержать только символы [a-zA-Z0-9а-яА-Я_.-]</string>
+    <string name="password_fails_regex_match">Пароль может содержать только символы [a-zA-Z0-9а-яА-Я_.-]</string>
+    <string name="password_and_repetition_are_not_equal">Пароли не совпадают</string>
+    <string name="registration_error">Ошибка регистрации</string>
+    <string name="log_in_error">Не удалось войти</string>
 </resources>

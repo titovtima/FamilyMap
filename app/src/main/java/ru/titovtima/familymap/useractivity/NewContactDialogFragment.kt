@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentNewContactDialogBinding
 import ru.titovtima.familymap.model.Contact
 import ru.titovtima.familymap.model.Settings
@@ -26,9 +27,9 @@ class NewContactDialogFragment : DialogFragment() {
 
         binding.submit.setOnClickListener {
             runBlocking {
-                if (!postNewContact()) {
-                    Toast.makeText(parentActivity, "Ошибка при добавлении конакта",
-                        Toast.LENGTH_SHORT).show()
+                if (postNewContact()) {
+                    this@NewContactDialogFragment.dialog?.dismiss()
+                    parentActivity.showUserSection()
                 }
             }
         }
@@ -38,8 +39,18 @@ class NewContactDialogFragment : DialogFragment() {
     }
 
     private suspend fun postNewContact(): Boolean {
-        val authString = Settings.user?.authString ?: return false
+        val authString = Settings.user?.authString
+        if (authString == null) {
+            Toast.makeText(parentActivity, getString(R.string.no_auth_string), Toast.LENGTH_SHORT).show()
+            return false
+        }
         val login = binding.loginInput.text.toString()
+        if (!Settings.loginRegex.matches(login)) {
+            Toast.makeText(parentActivity,
+                getString(R.string.login_fails_regex_match),
+                Toast.LENGTH_SHORT).show()
+            return false
+        }
         val showLocation = binding.checkboxShowLocation.isChecked
         val shareLocation = binding.checkboxShareLocation.isChecked
         val jsonString = "{\"login\":\"$login\"," +
@@ -56,10 +67,10 @@ class NewContactDialogFragment : DialogFragment() {
         return if (response.status.value == 201) {
             val contact = Json.decodeFromString<Contact>(response.body())
             Settings.user?.contacts?.add(contact)
-            this.dialog?.dismiss()
-            parentActivity.showUserSection()
             true
         } else {
+            Toast.makeText(parentActivity, getString(R.string.error_adding_contact),
+                Toast.LENGTH_SHORT).show()
             false
         }
     }

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
+import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentRegistrationBinding
 import ru.titovtima.familymap.model.Settings
 import ru.titovtima.familymap.model.SharedPrefsKeys
@@ -30,15 +31,28 @@ class RegistrationFragment : Fragment() {
         }
 
         binding.registrationButton.setOnClickListener {
+            val login = binding.inputLogin.text.toString()
+            if (!Settings.loginRegex.matches(login)) {
+                Toast.makeText(parentActivity,
+                    getString(R.string.login_fails_regex_match),
+                    Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val password = binding.inputPassword.text.toString()
             val repeatPassword = binding.inputRepeatPassword.text.toString()
+            if (!Settings.loginRegex.matches(password) || Settings.loginRegex.matches(repeatPassword)) {
+                Toast.makeText(parentActivity,
+                    getString(R.string.password_fails_regex_match),
+                    Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             if (password != repeatPassword) {
-                Toast.makeText(parentActivity, "Пароли не совпадают", Toast.LENGTH_SHORT).show()
+                Toast.makeText(parentActivity, getString(R.string.password_and_repetition_are_not_equal),
+                    Toast.LENGTH_SHORT).show()
                 binding.inputPassword.setText("")
                 binding.inputRepeatPassword.setText("")
                 return@setOnClickListener
             }
-            val login = binding.inputLogin.text.toString()
             val name = binding.inputName.text.toString()
             val stringToPost = "{\"login\":\"$login\",\"password\":\"$password\",\"name\":\"$name\"}"
             runBlocking {
@@ -59,7 +73,8 @@ class RegistrationFragment : Fragment() {
                         ?.apply()
                     parentActivity.showUserSection()
                 } else {
-                    Toast.makeText(parentActivity, "Ошибка регистрации", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(parentActivity, getString(R.string.registration_error),
+                        Toast.LENGTH_SHORT).show()
                 }
             }
         }

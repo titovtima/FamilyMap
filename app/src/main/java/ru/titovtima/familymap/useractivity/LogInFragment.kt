@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentLogInBinding
 import ru.titovtima.familymap.model.Settings
 import ru.titovtima.familymap.model.SharedPrefsKeys
@@ -34,12 +35,17 @@ class LogInFragment : Fragment() {
 
         binding.logInButton.setOnClickListener {
             val login = binding.inputLogin.text.toString()
+            if (!Settings.loginRegex.matches(login)) {
+                Toast.makeText(parentActivity,
+                    getString(R.string.login_fails_regex_match),
+                    Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val password = binding.inputPassword.text.toString()
-            if (login.contains(':') || password.contains(':')) {
-                Toast.makeText(
-                    this.activity, "Логин и пароль не должны включать символ ':'",
-                    Toast.LENGTH_SHORT
-                ).show()
+            if (!Settings.loginRegex.matches(password)) {
+                Toast.makeText(parentActivity,
+                    getString(R.string.password_fails_regex_match),
+                    Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val authString = Base64.getEncoder().encodeToString(("$login:$password").toByteArray())
@@ -59,7 +65,8 @@ class LogInFragment : Fragment() {
                         ?.apply()
                     parentActivity.showUserSection()
                 } else {
-                    Toast.makeText(parentActivity, "Не удалось войти", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(parentActivity, getString(R.string.log_in_error),
+                        Toast.LENGTH_SHORT).show()
                 }
             }
         }

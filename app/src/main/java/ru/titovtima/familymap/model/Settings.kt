@@ -19,6 +19,7 @@ class Settings {
             }
         }
         var sharedPreferencesObject: SharedPreferences? = null
+        val loginRegex = Regex("[a-zA-Z0-9а-яА-Я_.-]+")
     }
 }
 
