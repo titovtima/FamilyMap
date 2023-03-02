@@ -75,8 +75,9 @@ class LocationService : Service() {
                 val authString = Settings.user?.authString
                 if (authString != null) {
                     postLocation(authString)
-                    if (binder?.activity?.isOnForeground == true)
-                        updateContactsLocations()
+                    val activity = binder?.activity
+                    if (activity != null && activity.isOnForeground)
+                        activity.updateAllContactsPlacemarks()
                 }
                 Thread.sleep(40000)
             }
@@ -155,32 +156,23 @@ class LocationService : Service() {
         }
     }
 
-    fun updateContactsLocations() {
-        val user = Settings.user ?: return
-        val authString = user.authString ?: return
-        for (contact in user.contacts) {
-            if (!contact.showLocation)
-                continue
-            runBlocking {
-                getContactLocationFromServer(contact, authString)
-            }
-        }
-    }
-
-    private suspend fun getContactLocationFromServer(contact: Contact, authString: String) {
+    suspend fun getContactLocationFromServer(contactId: Int, authString: String): Boolean {
+        val contact = Settings.user?.contacts?.find { it.contactId == contactId } ?: return false
         val url = "https://familymap.titovtima.ru/location/last/${contact.login}"
         val response = Settings.httpClient.get(url) {
             headers {
                 append("Authorization", "Basic $authString")
             }
         }
-        if (response.status.value == 200) {
+        return if (response.status.value == 200) {
             val body = response.body<String>()
-            val location = MyLocation.readFromByteArray(Base64.getDecoder().decode(body)) ?: return
+            val location = MyLocation.readFromByteArray(Base64.getDecoder().decode(body)) ?: return false
             val lastKnownLocation = contact.lastKnownLocation
             if (lastKnownLocation == null || location.date > lastKnownLocation.date)
                 contact.lastKnownLocation = location
-            binder?.activity?.updateContactLocationPlacemark(contact.contactId)
+            true
+        } else {
+            false
         }
     }
 

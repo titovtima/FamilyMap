@@ -17,6 +17,7 @@ import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
+import kotlinx.coroutines.runBlocking
 import ru.titovtima.familymap.databinding.ActivityMainBinding
 import ru.titovtima.familymap.model.Settings
 import ru.titovtima.familymap.useractivity.UserActivity
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mapView: MapView
     private var myLocationPlacemark: PlacemarkMapObject? = null
     private var contactsPlacemarks = mutableMapOf<Int, PlacemarkMapObject?>()
-    private lateinit var contactsPlacemarksClusterizedCollection: ClusterizedPlacemarkCollection
+    private var contactsPlacemarksClusterizedCollection: ClusterizedPlacemarkCollection? = null
     private val serviceConnection = MyServiceConnection()
     private var mapLoadedFirstTime = true
     private var binder: LocationService.MyBinder? = null
@@ -43,14 +44,6 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
 
         mapView = binding.mapview
-        contactsPlacemarksClusterizedCollection = mapView.map.mapObjects
-            .addClusterizedPlacemarkCollection { cluster ->
-                val string = cluster.placemarks.joinToString("\n") { it.userData.toString() }
-                cluster.appearance.setText(string,
-                    TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false))
-                cluster.appearance.setIcon(ImageProvider.fromResource(this, R.drawable.cluster_placemark_img))
-                cluster.appearance.setIconStyle(IconStyle(null, null, -1f, null, null, 0.03f, null))
-            }
 
         setContentView(binding.root)
 
@@ -168,14 +161,28 @@ class MainActivity : AppCompatActivity() {
         val placemark = contactsPlacemarks[contactId]
         if (placemark != null) {
             runOnUiThread {
-                contactsPlacemarksClusterizedCollection.remove(placemark)
+                contactsPlacemarksClusterizedCollection?.remove(placemark)
                 contactsPlacemarks[contactId] = null
-                contactsPlacemarksClusterizedCollection.clusterPlacemarks(20f.toDouble(), 15)
+                contactsPlacemarksClusterizedCollection?.clusterPlacemarks(20f.toDouble(), 15)
             }
         }
     }
 
-    fun updateContactLocationPlacemark(contactId: Int) {
+    fun updateAllContactsPlacemarks() {
+        val user = Settings.user ?: return
+        val authString = user.authString ?: return
+        val service = binder?.service ?: return
+        user.contacts.forEach { contact ->
+            if (contact.login != null && contact.showLocation) {
+                runBlocking {
+                    if (service.getContactLocationFromServer(contact.contactId, authString))
+                        updateContactLocationPlacemark(contact.contactId)
+                }
+            }
+        }
+    }
+
+    private fun updateContactLocationPlacemark(contactId: Int) {
         val contact = Settings.user?.contacts?.find { it.contactId == contactId } ?: return
         if (!contact.showLocation) return
         val location = contact.lastKnownLocation ?: return
@@ -183,8 +190,9 @@ class MainActivity : AppCompatActivity() {
         val point = Point(location.latitude.toDouble() / 1000000,
             location.longitude.toDouble() / 1000000)
         if (placemark == null) {
+            val clusterizedCollection = contactsPlacemarksClusterizedCollection ?: return
             runOnUiThread {
-                val newPlacemark = contactsPlacemarksClusterizedCollection.addPlacemark(point)
+                val newPlacemark = clusterizedCollection.addPlacemark(point)
                 newPlacemark.setText(
                     contact.name,
                     TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
@@ -192,12 +200,11 @@ class MainActivity : AppCompatActivity() {
                 newPlacemark.userData = contact.name
                 newPlacemark.setIconStyle(IconStyle(null, null, 1f, null, null, null, null))
                 contactsPlacemarks[contactId] = newPlacemark
-                contactsPlacemarksClusterizedCollection.clusterPlacemarks(20f.toDouble(), 15)
+                clusterizedCollection.clusterPlacemarks(20f.toDouble(), 15)
             }
         } else {
             runOnUiThread {
                 contactsPlacemarks[contactId]?.geometry = point
-                contactsPlacemarksClusterizedCollection.clusterPlacemarks(20f.toDouble(), 15)
             }
         }
     }
@@ -220,7 +227,18 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isOnForeground = true
-        binder?.service?.updateContactsLocations()
+
+        contactsPlacemarksClusterizedCollection?.let{ mapView.map.mapObjects.remove(it) }
+        contactsPlacemarksClusterizedCollection = mapView.map.mapObjects
+            .addClusterizedPlacemarkCollection { cluster ->
+                val string = cluster.placemarks.joinToString("\n") { it.userData.toString() }
+                cluster.appearance.setText(string,
+                    TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false))
+                cluster.appearance.setIcon(ImageProvider.fromResource(this, R.drawable.cluster_placemark_img))
+                cluster.appearance.setIconStyle(IconStyle(null, null, -1f, null, null, 0.03f, null))
+            }
+        contactsPlacemarks = mutableMapOf()
+        updateAllContactsPlacemarks()
     }
 
     override fun onPause() {
@@ -246,7 +264,7 @@ class MainActivity : AppCompatActivity() {
             val user = Settings.user ?: return
             val authString = user.authString ?: return
             myBinder.service.postLocation(authString)
-            myBinder.service.updateContactsLocations()
+            updateAllContactsPlacemarks()
         }
 
         override fun onServiceDisconnected(p0: ComponentName?) {

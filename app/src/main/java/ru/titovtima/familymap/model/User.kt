@@ -13,7 +13,7 @@ data class User(val login: String,
 
 @Serializable
 data class Contact(val contactId: Int,
-                   val login: String,
+                   val login: String?,
                    var name: String,
                    var showLocation: Boolean = true,
                    var shareLocation: Boolean = true,
