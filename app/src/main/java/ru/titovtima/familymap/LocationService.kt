@@ -20,6 +20,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import ru.titovtima.familymap.model.*
+import ru.titovtima.familymap.useractivity.UserActivity
 import java.util.Base64
 import kotlin.concurrent.thread
 import kotlin.math.floor
@@ -95,6 +96,9 @@ class LocationService : Service() {
             val user = Json.decodeFromString<User>(response.body())
             user.authString = authString
             Settings.user = user
+        } else {
+            val userActivityIntent = Intent(this, UserActivity::class.java)
+            startActivity(userActivityIntent)
         }
     }
 
