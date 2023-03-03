@@ -169,6 +169,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun updateAllContactsPlacemarks() {
+        runOnUiThread {
         contactsPlacemarksClusterizedCollection?.let{ mapView.map.mapObjects.remove(it) }
         contactsPlacemarksClusterizedCollection = mapView.map.mapObjects
             .addClusterizedPlacemarkCollection { cluster ->
@@ -178,6 +179,7 @@ class MainActivity : AppCompatActivity() {
                 cluster.appearance.setIcon(ImageProvider.fromResource(this, R.drawable.cluster_placemark_img))
                 cluster.appearance.setIconStyle(IconStyle(null, null, -1f, null, null, 0.03f, null))
             }
+        }
         contactsPlacemarks = mutableMapOf()
         val user = Settings.user ?: return
         val authString = user.authString ?: return
