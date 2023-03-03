@@ -40,7 +40,7 @@ class RegistrationFragment : Fragment() {
             }
             val password = binding.inputPassword.text.toString()
             val repeatPassword = binding.inputRepeatPassword.text.toString()
-            if (!Settings.loginRegex.matches(password) || Settings.loginRegex.matches(repeatPassword)) {
+            if (!Settings.loginRegex.matches(password) || !Settings.loginRegex.matches(repeatPassword)) {
                 Toast.makeText(parentActivity,
                     getString(R.string.password_fails_regex_match),
                     Toast.LENGTH_SHORT).show()
