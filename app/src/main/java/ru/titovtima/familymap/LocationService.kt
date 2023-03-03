@@ -49,7 +49,7 @@ class LocationService : Service() {
             Notification.Builder(this, notificationChannelId)
                 .setContentTitle("Отслеживание местоположения")
                 .setContentText("")
-                .setSmallIcon(androidx.core.R.drawable.notification_bg)
+                .setSmallIcon(R.drawable.icon)
                 .setContentIntent(pendingIntent)
                 .setTicker("")
                 .build()
