@@ -169,6 +169,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun updateAllContactsPlacemarks() {
+        contactsPlacemarksClusterizedCollection?.let{ mapView.map.mapObjects.remove(it) }
+        contactsPlacemarksClusterizedCollection = mapView.map.mapObjects
+            .addClusterizedPlacemarkCollection { cluster ->
+                val string = cluster.placemarks.joinToString("\n") { it.userData.toString() }
+                cluster.appearance.setText(string,
+                    TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false))
+                cluster.appearance.setIcon(ImageProvider.fromResource(this, R.drawable.cluster_placemark_img))
+                cluster.appearance.setIconStyle(IconStyle(null, null, -1f, null, null, 0.03f, null))
+            }
+        contactsPlacemarks = mutableMapOf()
         val user = Settings.user ?: return
         val authString = user.authString ?: return
         val service = binder?.service ?: return
@@ -189,24 +199,21 @@ class MainActivity : AppCompatActivity() {
         val placemark = contactsPlacemarks[contactId]
         val point = Point(location.latitude.toDouble() / 1000000,
             location.longitude.toDouble() / 1000000)
-        if (placemark == null) {
-            val clusterizedCollection = contactsPlacemarksClusterizedCollection ?: return
-            runOnUiThread {
-                val newPlacemark = clusterizedCollection.addPlacemark(point)
-                newPlacemark.setText(
-                    contact.name,
-                    TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
-                )
-                newPlacemark.userData = contact.name
-                newPlacemark.setIconStyle(IconStyle(null, null, 1f, null, null, null, null))
-                contactsPlacemarks[contactId] = newPlacemark
-                clusterizedCollection.clusterPlacemarks(20f.toDouble(), 15)
-            }
-        } else {
-            runOnUiThread {
-                contactsPlacemarks[contactId]?.geometry = point
-            }
+        val clusterizedCollection = contactsPlacemarksClusterizedCollection ?: return
+        runOnUiThread {
+            if (placemark != null)
+                clusterizedCollection.remove(placemark)
+            val newPlacemark = clusterizedCollection.addPlacemark(point)
+            newPlacemark.setText(
+                contact.name,
+                TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false)
+            )
+            newPlacemark.userData = contact.name
+            newPlacemark.setIconStyle(IconStyle(null, null, 1f, null, null, null, null))
+            contactsPlacemarks[contactId] = newPlacemark
+            clusterizedCollection.clusterPlacemarks(20f.toDouble(), 15)
         }
+
     }
 
     override fun onStart() {
@@ -228,16 +235,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         isOnForeground = true
 
-        contactsPlacemarksClusterizedCollection?.let{ mapView.map.mapObjects.remove(it) }
-        contactsPlacemarksClusterizedCollection = mapView.map.mapObjects
-            .addClusterizedPlacemarkCollection { cluster ->
-                val string = cluster.placemarks.joinToString("\n") { it.userData.toString() }
-                cluster.appearance.setText(string,
-                    TextStyle(15f, null, null, TextStyle.Placement.TOP, 10f, false, false))
-                cluster.appearance.setIcon(ImageProvider.fromResource(this, R.drawable.cluster_placemark_img))
-                cluster.appearance.setIconStyle(IconStyle(null, null, -1f, null, null, 0.03f, null))
-            }
-        contactsPlacemarks = mutableMapOf()
         updateAllContactsPlacemarks()
     }
 
