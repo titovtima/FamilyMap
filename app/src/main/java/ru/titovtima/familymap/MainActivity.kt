@@ -236,6 +236,8 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isOnForeground = true
+        requestLocationPermissions()
+        requestForegroundServicePermission()
 
         updateAllContactsPlacemarks()
     }
