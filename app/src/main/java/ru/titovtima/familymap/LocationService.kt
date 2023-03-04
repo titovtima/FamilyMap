@@ -73,13 +73,15 @@ class LocationService : Service() {
         locationClient = LocationServices.getFusedLocationProviderClient(this)
         thread {
             while (true) {
-                val authString = Settings.user?.authString
-                if (authString != null) {
-                    postLocation(authString)
-                    val activity = binder?.activity
-                    if (activity != null && activity.isOnForeground)
-                        activity.updateAllContactsPlacemarks()
-                }
+                try {
+                    val authString = Settings.user?.authString
+                    if (authString != null) {
+                        postLocation(authString)
+                        val activity = binder?.activity
+                        if (activity != null && activity.isOnForeground)
+                            activity.updateAllContactsPlacemarks()
+                    }
+                } catch (_: Exception) {}
                 Thread.sleep(40000)
             }
         }
