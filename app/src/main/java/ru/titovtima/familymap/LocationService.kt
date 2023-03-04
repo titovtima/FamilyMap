@@ -74,6 +74,8 @@ class LocationService : Service() {
         thread {
             while (true) {
                 try {
+                    val startServiceIntent = Intent(this, LocationService::class.java)
+                    this.startForegroundService(startServiceIntent)
                     val authString = Settings.user?.authString
                     if (authString != null) {
                         postLocation(authString)
@@ -105,7 +107,7 @@ class LocationService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent): IBinder {
