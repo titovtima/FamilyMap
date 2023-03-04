@@ -1,5 +1,6 @@
 package ru.titovtima.familymap.useractivity
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -14,6 +15,8 @@ import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentContactBinding
 import ru.titovtima.familymap.model.Contact
 import ru.titovtima.familymap.model.Settings
+import ru.titovtima.familymap.model.toMyFormatString
+import java.util.Date
 
 class ContactFragment : Fragment() {
     private lateinit var contact: Contact
@@ -58,6 +61,22 @@ class ContactFragment : Fragment() {
             runBlocking {
                 postDeletingToServer()
             }
+        }
+
+        val lastLocation = contact.lastKnownLocation
+        if (lastLocation != null) {
+            val date = Date(lastLocation.date)
+            binding.lastLocationText.text = date.toMyFormatString()
+
+            binding.lastLocationLayout.setOnClickListener {
+                val intent = Intent(parentActivity, MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                intent.putExtra("moveMapLatitude", lastLocation.latitude)
+                intent.putExtra("moveMapLongitude", lastLocation.longitude)
+                startActivity(intent)
+            }
+        } else {
+            binding.lastLocationText.text = getString(R.string.location_unknown)
         }
 
         parentActivity.onBackPressedDispatcher.addCallback(this) {

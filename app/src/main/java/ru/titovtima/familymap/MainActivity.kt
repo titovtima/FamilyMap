@@ -55,6 +55,15 @@ class MainActivity : AppCompatActivity() {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             startActivity(intent)
         }
+
+        val moveMapLatitude = intent.getIntExtra("moveMapLatitude", Int.MAX_VALUE)
+        val moveMapLongitude = intent.getIntExtra("moveMapLongitude", Int.MAX_VALUE)
+        if (moveMapLatitude != Int.MAX_VALUE && moveMapLongitude != Int.MAX_VALUE) {
+            mapLoadedFirstTime = false
+            val point = Point(moveMapLatitude.toDouble() / 1000000,
+                moveMapLongitude.toDouble() / 1000000)
+            moveMapToLocation(point)
+        }
     }
 
     private fun requestForegroundServicePermission() {

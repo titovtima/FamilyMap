@@ -28,4 +28,5 @@
     <string name="password_and_repetition_are_not_equal">Пароли не совпадают</string>
     <string name="registration_error">Ошибка регистрации</string>
     <string name="log_in_error">Не удалось войти</string>
+    <string name="location_unknown">Местоположение неизвестно</string>
 </resources>
