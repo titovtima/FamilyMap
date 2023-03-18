@@ -29,4 +29,7 @@
     <string name="registration_error">Ошибка регистрации</string>
     <string name="log_in_error">Не удалось войти</string>
     <string name="location_unknown">Местоположение неизвестно</string>
+    <string name="ask_adding_contact_notification">хочет добавить Вас в контакты</string>
+    <string name="accept_contact_description">Новый контакт</string>
+    <string name="accept_contact_reject_button">Не сохранять</string>
 </resources>

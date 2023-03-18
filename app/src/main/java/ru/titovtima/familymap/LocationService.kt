@@ -9,6 +9,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -28,17 +29,16 @@ import kotlin.math.floor
 class LocationService : Service() {
     private var binder: LocationService.MyBinder? = null
     private lateinit var locationClient: FusedLocationProviderClient
+    private var maxNotificationId = 1
 
     override fun onCreate() {
-        val pendingIntent: PendingIntent =
-            Intent(this, MainActivity::class.java).let { notificationIntent ->
-                PendingIntent.getActivity(
-                    this, 0, notificationIntent,
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            }
+        val startActivityIntent = Intent(this, MainActivity::class.java)
+        startActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, startActivityIntent,
+            PendingIntent.FLAG_IMMUTABLE)
 
-        val notificationChannelId = "myChannelId"
+        val notificationChannelId = "locationNotificationChannelId"
         NotificationManagerCompat.from(this).createNotificationChannel(
             NotificationChannel(
                 notificationChannelId,
@@ -46,14 +46,20 @@ class LocationService : Service() {
                 NotificationManager.IMPORTANCE_MIN
             )
         )
-        val notification: Notification =
-            Notification.Builder(this, notificationChannelId)
-                .setContentTitle("Отслеживание местоположения")
-                .setContentText("")
-                .setSmallIcon(R.drawable.icon)
-                .setContentIntent(pendingIntent)
-                .setTicker("")
-                .build()
+        NotificationManagerCompat.from(this).createNotificationChannel(
+            NotificationChannel(
+                "contactsAskChannelId",
+                "notificationChannel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+        )
+        val notification = NotificationCompat.Builder(this, notificationChannelId)
+            .setContentTitle("Отслеживание местоположения")
+            .setContentText("")
+            .setSmallIcon(R.drawable.icon)
+            .setContentIntent(pendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .build()
 
         startForeground(1, notification)
 
@@ -70,6 +76,8 @@ class LocationService : Service() {
             }
         }
 
+        getIgnoredContactsAsksFromSharedPrefs()
+
         locationClient = LocationServices.getFusedLocationProviderClient(this)
         thread {
             while (true) {
@@ -82,6 +90,7 @@ class LocationService : Service() {
                         val activity = binder?.activity
                         if (activity != null && activity.isOnForeground)
                             activity.updateAllContactsPlacemarks()
+                        checkContactsRequests(authString)
                     }
                 } catch (_: Exception) {}
                 Thread.sleep(40000)
@@ -104,6 +113,13 @@ class LocationService : Service() {
             val userActivityIntent = Intent(this, UserActivity::class.java)
             startActivity(userActivityIntent)
         }
+    }
+
+    private fun getIgnoredContactsAsksFromSharedPrefs() {
+        val setFromSharedPrefs = Settings.sharedPreferencesObject
+            ?.getStringSet(SharedPrefsKeys.KEY_IGNORED_CONTACTS_ASKS.string, mutableSetOf())
+            ?: return
+        Settings.setIgnoredContactsAsks(setFromSharedPrefs)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -181,6 +197,67 @@ class LocationService : Service() {
             true
         } else {
             false
+        }
+    }
+
+    private fun checkContactsRequests(authString: String) {
+        runBlocking {
+            val list = getShareLocationAsksFromServer(authString) ?: return@runBlocking
+            val user = Settings.user ?: return@runBlocking
+            list.forEach { login ->
+                if (!user.contacts.any { it.login == login } &&
+                    !Settings.ignoredContactsAsks.contains(login) &&
+                    !Settings.contactAsksNotifications.containsKey(login)) {
+                    showContactAskNotification(login)
+                }
+            }
+        }
+    }
+
+    private fun showContactAskNotification(loginAsk: String) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            == PackageManager.PERMISSION_GRANTED) {
+            maxNotificationId++
+            val startActivityIntent = Intent(this, AcceptContactActivity::class.java)
+                .apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    putExtra("contactLogin", loginAsk)
+                    putExtra("notificationId", maxNotificationId)
+                }
+
+            val pendingIntent = PendingIntent.getActivity(
+                this, maxNotificationId, startActivityIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+            val notificationChannelId = "contactsAskChannelId"
+            val notification = NotificationCompat.Builder(this, notificationChannelId)
+                .setContentTitle("")
+                .setContentText("$loginAsk ${getString(R.string.ask_adding_contact_notification)}")
+                .setSmallIcon(R.drawable.icon)
+                .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+                .setContentIntent(pendingIntent)
+                .build()
+            Settings.contactAsksNotifications[loginAsk] = maxNotificationId
+            NotificationManagerCompat.from(this).notify(maxNotificationId, notification)
+        }
+    }
+
+    private suspend fun getShareLocationAsksFromServer(authString: String): List<String>? {
+        try {
+            val response = Settings.httpClient
+                .get("https://familymap.titovtima.ru/shareLocationAsks") {
+                    headers {
+                        append("Authorization", "Basic $authString")
+                    }
+                }
+            return if (response.status.value == 200) {
+                val body = response.body<String>()
+                body.split('\n')
+            } else {
+                null
+            }
+        } catch (_: Exception) {
+            return null
         }
     }
 

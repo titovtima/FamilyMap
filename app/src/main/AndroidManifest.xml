@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
@@ -20,14 +20,16 @@
         android:theme="@style/Theme.FamilyMap"
         tools:targetApi="31">
         <activity
+            android:name=".AcceptContactActivity"
+            android:exported="false" />
+        <activity
             android:name=".useractivity.UserActivity"
             android:exported="false" />
 
         <receiver
             android:name=".AutostartReceiver"
             android:enabled="true"
-            android:exported="true"
-            >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
@@ -37,8 +39,7 @@
             android:name=".LocationService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="location"
-            />
+            android:foregroundServiceType="location" />
 
         <activity
             android:name=".MainActivity"

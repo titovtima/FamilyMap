@@ -21,11 +21,25 @@ class Settings {
         }
         var sharedPreferencesObject: SharedPreferences? = null
         val loginRegex = Regex("[a-zA-Z0-9а-яА-Я_.-]+")
+
+        private var ignoredContactsAsks_ = mutableSetOf<String>()
+        val ignoredContactsAsks
+        get() = ignoredContactsAsks_.toSet()
+        fun ignoreContactAsk(login: String) {
+//            if (ignoredContactsAsks.contains(login)) return
+            ignoredContactsAsks_.add(login)
+            sharedPreferencesObject?.edit()
+                ?.putStringSet(SharedPrefsKeys.KEY_IGNORED_CONTACTS_ASKS.string, ignoredContactsAsks)
+                ?.apply()
+        }
+        fun setIgnoredContactsAsks(set: Set<String>) { ignoredContactsAsks_ = set.toMutableSet() }
+        val contactAsksNotifications = mutableMapOf<String, Int>()
     }
 }
 
 enum class SharedPrefsKeys(val string: String) {
-    KEY_USER_AUTH_STRING("authString")
+    KEY_USER_AUTH_STRING("authString"),
+    KEY_IGNORED_CONTACTS_ASKS("ignoredContactsAsks")
 }
 
 fun Date.toMyFormatString(): String =
