@@ -262,7 +262,7 @@ class LocationService : Service() {
                 }
             return if (response.status.value == 200) {
                 val body = response.body<String>()
-                body.split('\n')
+                body.split('\n').filter { it.trim().isNotEmpty() }
             } else {
                 null
             }
