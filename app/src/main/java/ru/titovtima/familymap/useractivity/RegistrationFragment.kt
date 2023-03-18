@@ -66,12 +66,14 @@ class RegistrationFragment : Fragment() {
                         }
                     if (response.status.value == 201) {
                         val user = User(login, name)
-                        user.authString = Base64.getEncoder()
+                        val authString = Base64.getEncoder()
                             .encodeToString("$login:$password".toByteArray())
+                        user.authString = authString
                         Settings.user = user
                         Settings.sharedPreferencesObject?.edit()
                             ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, user.authString)
                             ?.apply()
+                        Settings.locationService?.postLocation(authString)
                         parentActivity.showUserSection()
                     } else {
                         Toast.makeText(parentActivity, getString(R.string.registration_error),

@@ -6,6 +6,7 @@ import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
+import ru.titovtima.familymap.LocationService
 import java.util.Date
 
 class Settings {
@@ -34,6 +35,8 @@ class Settings {
         }
         fun setIgnoredContactsAsks(set: Set<String>) { ignoredContactsAsks_ = set.toMutableSet() }
         val contactAsksNotifications = mutableMapOf<String, Int>()
+
+        var locationService: LocationService? = null
     }
 }
 

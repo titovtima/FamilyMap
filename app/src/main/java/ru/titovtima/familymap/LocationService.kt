@@ -96,6 +96,8 @@ class LocationService : Service() {
                 Thread.sleep(40000)
             }
         }
+
+        Settings.locationService = this
     }
 
     private suspend fun getUserFromServer(authString: String) {

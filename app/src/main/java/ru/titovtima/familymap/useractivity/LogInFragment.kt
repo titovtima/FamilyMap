@@ -64,6 +64,7 @@ class LogInFragment : Fragment() {
                         Settings.sharedPreferencesObject?.edit()
                             ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, authString)
                             ?.apply()
+                        Settings.locationService?.postLocation(authString)
                         parentActivity.showUserSection()
                     } else {
                         Toast.makeText(parentActivity, getString(R.string.log_in_error),
