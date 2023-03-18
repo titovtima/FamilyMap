@@ -94,27 +94,33 @@ class ContactFragment : Fragment() {
         val jsonString = "{\"contactId\":$contactId," +
                 "\"showLocation\":$showLocation," +
                 "\"shareLocation\":$shareLocation}"
-        val response = Settings.httpClient.post(
-            "https://familymap.titovtima.ru/contacts/update") {
-            headers {
-                append("Authorization", "Basic $authString")
-                append("Content-Type", "application/json")
+        try {
+            val response = Settings.httpClient.post(
+                "https://familymap.titovtima.ru/contacts/update") {
+                headers {
+                    append("Authorization", "Basic $authString")
+                    append("Content-Type", "application/json")
+                }
+                setBody(jsonString)
             }
-            setBody(jsonString)
-        }
-        return if (response.status.value == 200) {
-            contact.showLocation = showLocation
-            contact.shareLocation = shareLocation
-            Settings.user?.contacts?.replaceAll { if (it.contactId == contactId) contact else it }
-            binding.save.visibility = View.GONE
-            if (!showLocation) {
-                MainActivity.getInstance()?.deleteContactLocationPlacemark(contactId)
+            return if (response.status.value == 200) {
+                contact.showLocation = showLocation
+                contact.shareLocation = shareLocation
+                Settings.user?.contacts?.replaceAll { if (it.contactId == contactId) contact else it }
+                binding.save.visibility = View.GONE
+                if (!showLocation) {
+                    MainActivity.getInstance()?.deleteContactLocationPlacemark(contactId)
+                }
+                true
+            } else {
+                Toast.makeText(parentActivity, getString(R.string.error_updating_contact), Toast.LENGTH_SHORT)
+                    .show()
+                false
             }
-            true
-        } else {
+        } catch (_: Exception) {
             Toast.makeText(parentActivity, getString(R.string.error_updating_contact), Toast.LENGTH_SHORT)
                 .show()
-            false
+            return false
         }
     }
 
@@ -122,23 +128,29 @@ class ContactFragment : Fragment() {
         val authString = Settings.user?.authString ?: return false
         val contactId = contact.contactId
         val jsonString = "{\"contactId\":$contactId}"
-        val response = Settings.httpClient.post(
-            "https://familymap.titovtima.ru/contacts/delete") {
-            headers {
-                append("Authorization", "Basic $authString")
-                append("Content-Type", "application/json")
+        try {
+            val response = Settings.httpClient.post(
+                "https://familymap.titovtima.ru/contacts/delete") {
+                headers {
+                    append("Authorization", "Basic $authString")
+                    append("Content-Type", "application/json")
+                }
+                setBody(jsonString)
             }
-            setBody(jsonString)
-        }
-        return if (response.status.value == 200) {
-            Settings.user?.contacts?.removeIf { it.contactId == contactId }
-            parentActivity.showUserSection()
-            MainActivity.getInstance()?.deleteContactLocationPlacemark(contactId)
-            true
-        } else {
+            return if (response.status.value == 200) {
+                Settings.user?.contacts?.removeIf { it.contactId == contactId }
+                parentActivity.showUserSection()
+                MainActivity.getInstance()?.deleteContactLocationPlacemark(contactId)
+                true
+            } else {
+                Toast.makeText(parentActivity, getString(R.string.error_deleting_contact), Toast.LENGTH_SHORT)
+                    .show()
+                false
+            }
+        } catch (_: Exception) {
             Toast.makeText(parentActivity, getString(R.string.error_deleting_contact), Toast.LENGTH_SHORT)
                 .show()
-            false
+            return false
         }
     }
 

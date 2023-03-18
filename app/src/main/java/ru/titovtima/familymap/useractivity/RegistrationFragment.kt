@@ -56,23 +56,28 @@ class RegistrationFragment : Fragment() {
             val name = binding.inputName.text.toString()
             val stringToPost = "{\"login\":\"$login\",\"password\":\"$password\",\"name\":\"$name\"}"
             runBlocking {
-                val response = Settings.httpClient
-                    .post("https://familymap.titovtima.ru/auth/registration") {
-                        headers {
-                            append("Content-Type", "application/json")
+                try {
+                    val response = Settings.httpClient
+                        .post("https://familymap.titovtima.ru/auth/registration") {
+                            headers {
+                                append("Content-Type", "application/json")
+                            }
+                            setBody(stringToPost)
                         }
-                        setBody(stringToPost)
+                    if (response.status.value == 201) {
+                        val user = User(login, name)
+                        user.authString = Base64.getEncoder()
+                            .encodeToString("$login:$password".toByteArray())
+                        Settings.user = user
+                        Settings.sharedPreferencesObject?.edit()
+                            ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, user.authString)
+                            ?.apply()
+                        parentActivity.showUserSection()
+                    } else {
+                        Toast.makeText(parentActivity, getString(R.string.registration_error),
+                            Toast.LENGTH_SHORT).show()
                     }
-                if (response.status.value == 201) {
-                    val user = User(login, name)
-                    user.authString = Base64.getEncoder()
-                        .encodeToString("$login:$password".toByteArray())
-                    Settings.user = user
-                    Settings.sharedPreferencesObject?.edit()
-                        ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, user.authString)
-                        ?.apply()
-                    parentActivity.showUserSection()
-                } else {
+                } catch (_: Exception) {
                     Toast.makeText(parentActivity, getString(R.string.registration_error),
                         Toast.LENGTH_SHORT).show()
                 }

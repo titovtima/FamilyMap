@@ -99,17 +99,22 @@ class LocationService : Service() {
     }
 
     private suspend fun getUserFromServer(authString: String) {
-        val response = Settings.httpClient
-            .get("https://familymap.titovtima.ru/auth/login") {
-                headers {
-                    append("Authorization", "Basic $authString")
+        try {
+            val response = Settings.httpClient
+                .get("https://familymap.titovtima.ru/auth/login") {
+                    headers {
+                        append("Authorization", "Basic $authString")
+                    }
                 }
+            if (response.status.value == 200) {
+                val user = Json.decodeFromString<User>(response.body())
+                user.authString = authString
+                Settings.user = user
+            } else {
+                val userActivityIntent = Intent(this, UserActivity::class.java)
+                startActivity(userActivityIntent)
             }
-        if (response.status.value == 200) {
-            val user = Json.decodeFromString<User>(response.body())
-            user.authString = authString
-            Settings.user = user
-        } else {
+        } catch (_: Exception) {
             val userActivityIntent = Intent(this, UserActivity::class.java)
             startActivity(userActivityIntent)
         }
@@ -164,39 +169,44 @@ class LocationService : Service() {
         val longitude = floor(location.longitude * 1000000).toInt()
         val date = location.time
         val stringToPost = "{\"latitude\":$latitude,\"longitude\":$longitude,\"date\":$date}"
-        val response = Settings.httpClient.post("https://familymap.titovtima.ru/location") {
-            headers {
-                append("Authorization", "Basic $authString")
-                append("Content-Type", "application/json")
+        try {
+            val response = Settings.httpClient.post("https://familymap.titovtima.ru/location") {
+                headers {
+                    append("Authorization", "Basic $authString")
+                    append("Content-Type", "application/json")
+                }
+                setBody(stringToPost)
             }
-            setBody(stringToPost)
-        }
-        if (response.status.value in 200..299) {
-//            Toast.makeText(this, "Location posted", Toast.LENGTH_LONG).show()
-        } else {
-            Toast.makeText(this,
-                "Error posting location\n${response.status.value} ${response.status.description}",
-                Toast.LENGTH_LONG).show()
-        }
+            if (response.status.value !in 200..299) {
+                Toast.makeText(this,
+                    "Error posting location\n${response.status.value} ${response.status.description}",
+                    Toast.LENGTH_LONG).show()
+            }
+        } catch (_: Exception) { }
     }
 
     suspend fun getContactLocationFromServer(contactId: Int, authString: String): Boolean {
         val contact = Settings.user?.contacts?.find { it.contactId == contactId } ?: return false
         val url = "https://familymap.titovtima.ru/location/last/${contact.login}"
-        val response = Settings.httpClient.get(url) {
-            headers {
-                append("Authorization", "Basic $authString")
+        try {
+            val response = Settings.httpClient.get(url) {
+                headers {
+                    append("Authorization", "Basic $authString")
+                }
             }
-        }
-        return if (response.status.value == 200) {
-            val body = response.body<String>()
-            val location = MyLocation.readFromByteArray(Base64.getDecoder().decode(body)) ?: return false
-            val lastKnownLocation = contact.lastKnownLocation
-            if (lastKnownLocation == null || location.date > lastKnownLocation.date)
-                contact.lastKnownLocation = location
-            true
-        } else {
-            false
+            return if (response.status.value == 200) {
+                val body = response.body<String>()
+                val location =
+                    MyLocation.readFromByteArray(Base64.getDecoder().decode(body)) ?: return false
+                val lastKnownLocation = contact.lastKnownLocation
+                if (lastKnownLocation == null || location.date > lastKnownLocation.date)
+                    contact.lastKnownLocation = location
+                true
+            } else {
+                false
+            }
+        } catch (_: Exception) {
+            return false
         }
     }
 

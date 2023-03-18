@@ -56,22 +56,28 @@ class NewContactDialogFragment : DialogFragment() {
         val jsonString = "{\"login\":\"$login\"," +
                 "\"shareLocation\":$shareLocation," +
                 "\"showLocation\":$showLocation}"
-        val response = Settings.httpClient.post(
-            "https://familymap.titovtima.ru/contacts/add") {
-            headers {
-                append("Authorization", "Basic $authString")
-                append("Content-Type", "application/json")
+        try {
+            val response = Settings.httpClient.post(
+                "https://familymap.titovtima.ru/contacts/add") {
+                headers {
+                    append("Authorization", "Basic $authString")
+                    append("Content-Type", "application/json")
+                }
+                setBody(jsonString)
             }
-            setBody(jsonString)
-        }
-        return if (response.status.value == 201) {
-            val contact = Json.decodeFromString<Contact>(response.body())
-            Settings.user?.contacts?.add(contact)
-            true
-        } else {
+            return if (response.status.value == 201) {
+                val contact = Json.decodeFromString<Contact>(response.body())
+                Settings.user?.contacts?.add(contact)
+                true
+            } else {
+                Toast.makeText(parentActivity, getString(R.string.error_adding_contact),
+                    Toast.LENGTH_SHORT).show()
+                false
+            }
+        } catch (_: Exception) {
             Toast.makeText(parentActivity, getString(R.string.error_adding_contact),
                 Toast.LENGTH_SHORT).show()
-            false
+            return false
         }
     }
 }

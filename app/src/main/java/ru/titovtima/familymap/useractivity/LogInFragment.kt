@@ -50,21 +50,26 @@ class LogInFragment : Fragment() {
             }
             val authString = Base64.getEncoder().encodeToString(("$login:$password").toByteArray())
             runBlocking {
-                val response = Settings.httpClient
-                    .get("https://familymap.titovtima.ru/auth/login") {
-                        headers {
-                            append("Authorization", "Basic $authString")
+                try {
+                    val response = Settings.httpClient
+                        .get("https://familymap.titovtima.ru/auth/login") {
+                            headers {
+                                append("Authorization", "Basic $authString")
+                            }
                         }
+                    if (response.status.value == 200) {
+                        val user = Json.decodeFromString<User>(response.body())
+                        user.authString = authString
+                        Settings.user = user
+                        Settings.sharedPreferencesObject?.edit()
+                            ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, authString)
+                            ?.apply()
+                        parentActivity.showUserSection()
+                    } else {
+                        Toast.makeText(parentActivity, getString(R.string.log_in_error),
+                            Toast.LENGTH_SHORT).show()
                     }
-                if (response.status.value == 200) {
-                    val user = Json.decodeFromString<User>(response.body())
-                    user.authString = authString
-                    Settings.user = user
-                    Settings.sharedPreferencesObject?.edit()
-                        ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, authString)
-                        ?.apply()
-                    parentActivity.showUserSection()
-                } else {
+                } catch (_: Exception) {
                     Toast.makeText(parentActivity, getString(R.string.log_in_error),
                         Toast.LENGTH_SHORT).show()
                 }
