@@ -95,6 +95,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val locationPermissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
+            permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
+            val authString = Settings.user?.authString ?: return@registerForActivityResult
+            binder?.service?.postLocation(authString)
+        }
+        requestBackgroundLocationPermission()
+    }
+
     private fun requestLocationPermissions() {
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -105,15 +116,6 @@ class MainActivity : AppCompatActivity() {
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             binder?.lastKnownLocation = null
-            val locationPermissionRequest = registerForActivityResult(
-                ActivityResultContracts.RequestMultiplePermissions()
-            ) { permissions ->
-                if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
-                    permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
-                    val authString = Settings.user?.authString ?: return@registerForActivityResult
-                    binder?.service?.postLocation(authString)
-                }
-            }
             locationPermissionRequest.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -129,9 +131,6 @@ class MainActivity : AppCompatActivity() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             != PackageManager.PERMISSION_GRANTED) {
-            val locationPermissionRequest = registerForActivityResult(
-                ActivityResultContracts.RequestMultiplePermissions()
-            ) { }
             locationPermissionRequest.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION
@@ -245,9 +244,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isOnForeground = true
-        requestLocationPermissions()
-        requestForegroundServicePermission()
-
         updateAllContactsPlacemarks()
     }
 
