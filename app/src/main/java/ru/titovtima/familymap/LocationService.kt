@@ -118,6 +118,7 @@ class LocationService : Service() {
             }
         } catch (_: Exception) {
             val userActivityIntent = Intent(this, UserActivity::class.java)
+            userActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(userActivityIntent)
         }
     }
