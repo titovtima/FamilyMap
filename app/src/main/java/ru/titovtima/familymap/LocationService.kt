@@ -17,6 +17,7 @@ import com.google.android.gms.location.Priority
 import com.yandex.mapkit.geometry.Point
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -161,7 +162,9 @@ class LocationService : Service() {
                         binder?.activity?.moveMapToLocation(point)
                     binder?.lastKnownLocation = location
                     runBlocking {
-                        postLocationToServer(location, authString)
+                        launch {
+                            postLocationToServer(location, authString)
+                        }
                     }
                 }
         }
@@ -215,13 +218,15 @@ class LocationService : Service() {
 
     private fun checkContactsRequests(authString: String) {
         runBlocking {
-            val list = getShareLocationAsksFromServer(authString) ?: return@runBlocking
-            val user = Settings.user ?: return@runBlocking
-            list.forEach { login ->
-                if (!user.contacts.any { it.login == login } &&
-                    !Settings.ignoredContactsAsks.contains(login) &&
-                    !Settings.contactAsksNotifications.containsKey(login)) {
-                    showContactAskNotification(login)
+            launch {
+                val list = getShareLocationAsksFromServer(authString) ?: return@launch
+                val user = Settings.user ?: return@launch
+                list.forEach { login ->
+                    if (!user.contacts.any { it.login == login } &&
+                        !Settings.ignoredContactsAsks.contains(login) &&
+                        !Settings.contactAsksNotifications.containsKey(login)) {
+                        showContactAskNotification(login)
+                    }
                 }
             }
         }

@@ -17,6 +17,7 @@ import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import ru.titovtima.familymap.databinding.ActivityMainBinding
 import ru.titovtima.familymap.model.Settings
@@ -195,8 +196,10 @@ class MainActivity : AppCompatActivity() {
         user.contacts.forEach { contact ->
             if (contact.login != null && contact.showLocation) {
                 runBlocking {
-                    if (service.getContactLocationFromServer(contact.contactId, authString))
-                        updateContactLocationPlacemark(contact.contactId)
+                    launch {
+                        if (service.getContactLocationFromServer(contact.contactId, authString))
+                            updateContactLocationPlacemark(contact.contactId)
+                    }
                 }
             }
         }
