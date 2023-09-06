@@ -22,7 +22,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import ru.titovtima.familymap.model.*
-import ru.titovtima.familymap.useractivity.UserActivity
 import java.util.Base64
 import kotlin.concurrent.thread
 import kotlin.math.floor
@@ -31,6 +30,8 @@ class LocationService : Service() {
     private var binder: LocationService.MyBinder? = null
     private lateinit var locationClient: FusedLocationProviderClient
     private var maxNotificationId = 1
+    private val locationNotificationChannelId = "locationChannelId"
+    private val contactsAskNotificationChannelId = "contactsAskChannelId"
 
     override fun onCreate() {
         val startActivityIntent = Intent(this, MainActivity::class.java)
@@ -39,10 +40,9 @@ class LocationService : Service() {
             this, 0, startActivityIntent,
             PendingIntent.FLAG_IMMUTABLE)
 
-        val notificationChannelId = "locationNotificationChannelId"
         NotificationManagerCompat.from(this).createNotificationChannel(
             NotificationChannel(
-                notificationChannelId,
+                locationNotificationChannelId,
                 "notificationChannel",
                 NotificationManager.IMPORTANCE_MIN
             )
@@ -54,7 +54,7 @@ class LocationService : Service() {
                 NotificationManager.IMPORTANCE_DEFAULT
             )
         )
-        val notification = NotificationCompat.Builder(this, notificationChannelId)
+        val notification = NotificationCompat.Builder(this, locationNotificationChannelId)
             .setContentTitle("Отслеживание местоположения")
             .setContentText("")
             .setSmallIcon(R.drawable.icon)
@@ -113,14 +113,15 @@ class LocationService : Service() {
                 val user = Json.decodeFromString<User>(response.body())
                 user.authString = authString
                 Settings.user = user
-            } else {
-                val userActivityIntent = Intent(this, UserActivity::class.java)
-                startActivity(userActivityIntent)
-            }
+            } else throw Exception()
         } catch (_: Exception) {
-            val userActivityIntent = Intent(this, UserActivity::class.java)
-            userActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(userActivityIntent)
+            val notification = NotificationCompat.Builder(this, locationNotificationChannelId)
+                .setContentTitle("Не удалось войти")
+                .build()
+            if (ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                NotificationManagerCompat.from(this).notify(1, notification)
+            }
         }
     }
 
@@ -247,7 +248,7 @@ class LocationService : Service() {
                 this, maxNotificationId, startActivityIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-            val notificationChannelId = "contactsAskChannelId"
+            val notificationChannelId = contactsAskNotificationChannelId
             val notification = NotificationCompat.Builder(this, notificationChannelId)
                 .setContentTitle("")
                 .setContentText("$loginAsk ${getString(R.string.ask_adding_contact_notification)}")

@@ -17,10 +17,18 @@ import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.*
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import ru.titovtima.familymap.databinding.ActivityMainBinding
 import ru.titovtima.familymap.model.Settings
+import ru.titovtima.familymap.model.SharedPrefsKeys
+import ru.titovtima.familymap.model.User
 import ru.titovtima.familymap.useractivity.UserActivity
 import kotlin.math.max
 
@@ -48,8 +56,29 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(binding.root)
 
-        requestLocationPermissions()
-        requestForegroundServicePermission()
+        if (Settings.sharedPreferencesObject == null)
+            Settings.sharedPreferencesObject = getSharedPreferences("settings", MODE_PRIVATE)
+        runBlocking {
+            val getUser = async {
+                if (Settings.user == null) {
+                    val authString = Settings.sharedPreferencesObject
+                        ?.getString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, null)
+                    if (authString != null) {
+                        getUserFromServer(authString)
+                    } else
+                        null
+                } else
+                    Settings.user
+            }.await()
+            if (getUser == null) {
+                val userActivityIntent = Intent(this@MainActivity, UserActivity::class.java)
+                startActivity(userActivityIntent)
+            } else {
+                requestForegroundServicePermission{
+                    requestLocationPermissions()
+                }
+            }
+        }
 
         binding.userButton.setOnClickListener {
             val intent = Intent(this, UserActivity::class.java)
@@ -67,7 +96,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestForegroundServicePermission() {
+    private suspend fun getUserFromServer(authString: String): User? {
+        try {
+            val response = Settings.httpClient
+                .get("https://familymap.titovtima.ru/auth/login") {
+                    headers {
+                        append("Authorization", "Basic $authString")
+                    }
+                }
+            if (response.status.value == 200) {
+                val user = Json.decodeFromString<User>(response.body())
+                user.authString = authString
+                Settings.user = user
+                return user
+            } else {
+                return null
+            }
+        } catch (_: Exception) {
+            return null
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        requestForegroundServicePermission{
+            requestLocationPermissions()
+        }
+    }
+
+    private fun requestForegroundServicePermission(callback: Runnable) {
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.FOREGROUND_SERVICE
@@ -84,6 +141,7 @@ class MainActivity : AppCompatActivity() {
                     val startServiceIntent = Intent(this, LocationService::class.java)
                     this.startForegroundService(startServiceIntent)
                 }
+                callback.run()
             }
             val permissionsArray = mutableListOf(Manifest.permission.FOREGROUND_SERVICE)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -93,6 +151,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             val startServiceIntent = Intent(this, LocationService::class.java)
             this.startForegroundService(startServiceIntent)
+            callback.run()
         }
     }
 
@@ -101,8 +160,9 @@ class MainActivity : AppCompatActivity() {
     ) { permissions ->
         if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
-            val authString = Settings.user?.authString ?: return@registerForActivityResult
-            binder?.service?.postLocation(authString)
+            val authString = Settings.user?.authString
+            if (authString != null)
+                binder?.service?.postLocation(authString)
         }
         requestBackgroundLocationPermission()
     }

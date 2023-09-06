@@ -1,5 +1,6 @@
 package ru.titovtima.familymap.useractivity
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import ru.titovtima.familymap.MainActivity
 import ru.titovtima.familymap.R
 import ru.titovtima.familymap.databinding.FragmentLogInBinding
 import ru.titovtima.familymap.model.Settings
@@ -65,7 +67,9 @@ class LogInFragment : Fragment() {
                             ?.putString(SharedPrefsKeys.KEY_USER_AUTH_STRING.string, authString)
                             ?.apply()
                         Settings.locationService?.postLocation(authString)
-                        parentActivity.showUserSection()
+                        val intent = Intent(parentActivity, MainActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        startActivity(intent)
                     } else {
                         Toast.makeText(parentActivity, getString(R.string.log_in_error),
                             Toast.LENGTH_SHORT).show()
