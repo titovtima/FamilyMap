@@ -1,5 +1,5 @@
 # FamilyMap
 
-Приложение использует сервер [github.com/titovtima/FamilyMapServer](github.com/titovtima/FamilyMapServer)
+Приложение использует сервер [https://github.com/titovtima/FamilyMapServer](https://github.com/titovtima/FamilyMapServer)
 
-Опубликовано в RuStore: [apps.rustore.ru/app/ru.titovtima.familymap](apps.rustore.ru/app/ru.titovtima.familymap)
+Опубликовано в RuStore: [https://apps.rustore.ru/app/ru.titovtima.familymap](https://apps.rustore.ru/app/ru.titovtima.familymap)
