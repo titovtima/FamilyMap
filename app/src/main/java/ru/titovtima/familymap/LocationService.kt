@@ -120,7 +120,9 @@ class LocationService : Service() {
                 .build()
             if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                NotificationManagerCompat.from(this).notify(1, notification)
+                try {
+                    NotificationManagerCompat.from(this).notify(1, notification)
+                } catch (_: Exception) {}
             }
         }
     }
