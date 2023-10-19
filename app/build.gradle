@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'ru.titovtima.familymap'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "ru.titovtima.familymap"
         minSdk 29
-        targetSdk 33
+        targetSdk 34
         versionCode 3
         versionName "1.0.2"
 
