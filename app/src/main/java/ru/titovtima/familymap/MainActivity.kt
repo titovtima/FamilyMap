@@ -217,6 +217,9 @@ class MainActivity : AppCompatActivity() {
                     bindService(intentBindService, serviceConnection, 0)
                 }
             }.launch(Manifest.permission.FOREGROUND_SERVICE_LOCATION)
+        } else {
+            val intentBindService = Intent(this, LocationService::class.java)
+            bindService(intentBindService, serviceConnection, 0)
         }
     }
 
