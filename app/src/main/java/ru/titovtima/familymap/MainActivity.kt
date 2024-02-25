@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.yandex.mapkit.Animation
@@ -55,6 +56,10 @@ class MainActivity : AppCompatActivity() {
         mapView = binding.mapview
 
         setContentView(binding.root)
+
+        requestForegroundServicePermission{
+            requestLocationPermissions()
+        }
 
         if (Settings.sharedPreferencesObject == null)
             Settings.sharedPreferencesObject = getSharedPreferences("settings", MODE_PRIVATE)
@@ -200,6 +205,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(34)
+    private fun requestForegroundServicePermission() {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.FOREGROUND_SERVICE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            registerForActivityResult(ActivityResultContracts.RequestPermission())
+            { isGranted ->
+                if (isGranted) {
+                    val intentBindService = Intent(this, LocationService::class.java)
+                    bindService(intentBindService, serviceConnection, 0)
+                }
+            }.launch(Manifest.permission.FOREGROUND_SERVICE_LOCATION)
+        }
+    }
+
     fun moveMapToLocation(point: Point) {
         val mapView = this.mapView
         val prevZoom = mapView.map.cameraPosition.zoom
@@ -289,19 +309,28 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun bindService() {
+
+    }
+
     override fun onStart() {
         super.onStart()
         MapKitFactory.getInstance().onStart()
         mapView.onStart()
-        val intentBindService = Intent(this, LocationService::class.java)
-        bindService(intentBindService, serviceConnection, 0)
+        if (Build.VERSION.SDK_INT >= 34) {
+            requestForegroundServicePermission()
+        } else {
+            val intentBindService = Intent(this, LocationService::class.java)
+            bindService(intentBindService, serviceConnection, 0)
+        }
     }
 
     override fun onStop() {
         super.onStop()
         MapKitFactory.getInstance().onStop()
         mapView.onStop()
-        unbindService(serviceConnection)
+        if (binder != null)
+            unbindService(serviceConnection)
     }
 
     override fun onResume() {
