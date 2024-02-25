@@ -193,11 +193,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val bgLocationPermissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
+            permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
+            val authString = Settings.user?.authString
+            if (authString != null)
+                binder?.service?.postLocation(authString)
+        }
+    }
+
     private fun requestBackgroundLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             != PackageManager.PERMISSION_GRANTED) {
-            locationPermissionRequest.launch(
+            bgLocationPermissionRequest.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 )
