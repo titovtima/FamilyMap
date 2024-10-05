@@ -9,7 +9,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "ru.titovtima.familymap"
+        applicationId "ru.titovtima.familymap.test"
         minSdk 29
         targetSdk 34
         versionCode 4
